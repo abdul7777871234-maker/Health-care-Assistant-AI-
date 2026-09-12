@@ -2,8 +2,8 @@
 
 import os
 import streamlit as st
+
 from google import genai
-from google.genai import types
 from groq import Groq
 
 
@@ -15,7 +15,7 @@ st.set_page_config(
     page_title="AI Healthcare Assistant",
     page_icon="🩺",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 
@@ -35,106 +35,85 @@ if "response_style" not in st.session_state:
 if "accent" not in st.session_state:
     st.session_state.accent = "Rose"
 
-# Application MUST start in dark theme.
 if "theme" not in st.session_state:
     st.session_state.theme = "Dark"
 
 
 # ===========================================================
-# ACCENT PALETTES
+# ACCENTS
 # ===========================================================
 
 ACCENTS = {
     "Rose": {
-        "accent": "#ff3d78",
-        "accent_soft": "#ff9dbb",
-        "accent_rgb": "255,61,120",
+        "primary": "#ff3d78",
+        "soft": "#ff9fbd",
+        "rgb": "255,61,120",
     },
-
     "Blue": {
-        "accent": "#4da3ff",
-        "accent_soft": "#9dccff",
-        "accent_rgb": "77,163,255",
+        "primary": "#3d82ff",
+        "soft": "#9fbeff",
+        "rgb": "61,130,255",
     },
-
     "Cyan": {
-        "accent": "#35d8ff",
-        "accent_soft": "#9cefff",
-        "accent_rgb": "53,216,255",
+        "primary": "#22d3ee",
+        "soft": "#a5f3fc",
+        "rgb": "34,211,238",
     },
-
     "Violet": {
-        "accent": "#9b6cff",
-        "accent_soft": "#c7b0ff",
-        "accent_rgb": "155,108,255",
+        "primary": "#a855f7",
+        "soft": "#d8b4fe",
+        "rgb": "168,85,247",
     },
-
     "Emerald": {
-        "accent": "#32d296",
-        "accent_soft": "#9af0ce",
-        "accent_rgb": "50,210,150",
+        "primary": "#10b981",
+        "soft": "#6ee7b7",
+        "rgb": "16,185,129",
     },
-
     "Amber": {
-        "accent": "#ffb52e",
-        "accent_soft": "#ffd889",
-        "accent_rgb": "255,181,46",
+        "primary": "#f59e0b",
+        "soft": "#fcd34d",
+        "rgb": "245,158,11",
     },
 }
 
+accent = ACCENTS[st.session_state.accent]
 
-accent_data = ACCENTS[st.session_state.accent]
-
-ACCENT = accent_data["accent"]
-ACCENT_SOFT = accent_data["accent_soft"]
-ACCENT_RGB = accent_data["accent_rgb"]
+ACCENT = accent["primary"]
+ACCENT_SOFT = accent["soft"]
+ACCENT_RGB = accent["rgb"]
 
 
 # ===========================================================
-# THEME VARIABLES
+# THEME
 # ===========================================================
 
-if st.session_state.theme == "Dark":
+if st.session_state.theme == "Light":
 
-    BG = "#07090f"
-    SIDEBAR = "#0b0e17"
-    PANEL = "#11141e"
-    PANEL_2 = "#10131c"
+    BG = "#f4f6fb"
+    SIDEBAR = "#ffffff"
+    PANEL = "#ffffff"
+    PANEL_ALT = "#f8fafc"
 
-    TEXT = "#f3f4f7"
-    MUTED = "#9aa1ad"
-    MUTED_2 = "#737b89"
+    TEXT = "#111827"
+    MUTED = "#667085"
 
-    BUTTON = "#10141e"
-    BUTTON_HOVER = "#141925"
-
-    INPUT = "#11151f"
-
-    DIVIDER = "rgba(255,255,255,0.08)"
-    BORDER = "rgba(255,255,255,0.075)"
+    BORDER = "rgba(17,24,39,0.10)"
 
 else:
 
-    BG = "#f5f7fb"
-    SIDEBAR = "#ffffff"
-    PANEL = "#ffffff"
-    PANEL_2 = "#f9fafc"
+    BG = "#080a10"
+    SIDEBAR = "#0b0e17"
+    PANEL = "#11141e"
+    PANEL_ALT = "#0f121b"
 
-    TEXT = "#1f2430"
-    MUTED = "#667085"
-    MUTED_2 = "#8a93a1"
+    TEXT = "#f3f4f6"
+    MUTED = "#9ca3af"
 
-    BUTTON = "#ffffff"
-    BUTTON_HOVER = "#f7f9fc"
-
-    INPUT = "#ffffff"
-
-    DIVIDER = "rgba(20,30,50,0.10)"
-    BORDER = "rgba(20,30,50,0.10)"
+    BORDER = "rgba(255,255,255,0.08)"
 
 
 # ===========================================================
-# CUSTOM CSS
+# COMPLETE CSS
 # ===========================================================
 
 st.markdown(
@@ -142,7 +121,7 @@ st.markdown(
 <style>
 
 /* ==========================================================
-   CORE PAGE
+   GLOBAL
    ========================================================== */
 
 html,
@@ -152,14 +131,7 @@ body,
 }}
 
 .stApp {{
-    background:
-        radial-gradient(
-            circle at 52% 6%,
-            rgba({ACCENT_RGB}, 0.035),
-            transparent 26%
-        ),
-        {BG} !important;
-
+    background: {BG} !important;
     color: {TEXT} !important;
 }}
 
@@ -168,25 +140,18 @@ body,
 }}
 
 .block-container {{
-    width: 100% !important;
     max-width: none !important;
 
-    padding-top: 26px !important;
-    padding-bottom: 100px !important;
-    padding-left: 24px !important;
-    padding-right: 24px !important;
+    padding-top: 27px !important;
+    padding-bottom: 105px !important;
+    padding-left: 22px !important;
+    padding-right: 22px !important;
 }}
 
 
 /* ==========================================================
-   KEEP STREAMLIT NATIVE SIDEBAR COLLAPSE ARROW
+   KEEP NATIVE STREAMLIT SIDEBAR ARROW
    ========================================================== */
-
-/*
-   IMPORTANT:
-   Do NOT hide stHeader / stToolbar.
-   Streamlit's native sidebar collapse arrow lives there.
-*/
 
 header[data-testid="stHeader"] {{
     background: transparent !important;
@@ -198,6 +163,29 @@ header[data-testid="stHeader"] {{
 
 footer {{
     visibility: hidden !important;
+}}
+
+[data-testid="stToolbar"] {{
+    visibility: hidden !important;
+}}
+
+[data-testid="stDecoration"] {{
+    visibility: hidden !important;
+}}
+
+/*
+   IMPORTANT:
+   header itself is NOT display:none.
+   Therefore Streamlit's native sidebar collapse arrow
+   remains available.
+*/
+
+[data-testid="collapsedControl"] button {{
+    color: {MUTED} !important;
+}}
+
+[data-testid="collapsedControl"] button:hover {{
+    color: {ACCENT} !important;
 }}
 
 
@@ -212,11 +200,13 @@ section[data-testid="stSidebar"] {{
 
     background: {SIDEBAR} !important;
 
-    border-right: 1px solid {DIVIDER} !important;
+    border-right:
+        1px solid {BORDER} !important;
 }}
 
 section[data-testid="stSidebar"] > div {{
-    padding: 10px 18px 18px 18px !important;
+    padding:
+        10px 18px 18px 18px !important;
 }}
 
 section[data-testid="stSidebar"] * {{
@@ -224,108 +214,97 @@ section[data-testid="stSidebar"] * {{
 }}
 
 
-/* Native collapse control */
-[data-testid="collapsedControl"] button {{
-    color: {MUTED} !important;
-}}
-
-[data-testid="collapsedControl"] button:hover {{
-    color: {ACCENT} !important;
-}}
-
-
 /* ==========================================================
    SIDEBAR BRAND
    ========================================================== */
 
-.sidebar-top {{
-    min-height: 31px;
-
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-
-    margin-bottom: 11px;
+.sidebar-spacer {{
+    height: 24px;
 }}
 
-.sidebar-brand {{
+.brand-wrap {{
     text-align: center;
-    padding-bottom: 19px;
+
+    padding:
+        4px 0 19px 0;
 }}
 
-.sidebar-brand-icon {{
+.brand-icon {{
     width: 51px;
     height: 51px;
 
-    margin: 0 auto 10px auto;
-
-    border-radius: 16px;
+    margin:
+        0 auto 11px auto;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    border: 1px solid rgba({ACCENT_RGB}, 0.82);
+    border:
+        1px solid {ACCENT};
+
+    border-radius: 16px;
 
     background:
-        radial-gradient(
-            circle,
-            rgba({ACCENT_RGB}, 0.10),
-            rgba({ACCENT_RGB}, 0.015) 72%
-        );
+        rgba({ACCENT_RGB}, 0.055);
 
     box-shadow:
-        0 0 12px rgba({ACCENT_RGB}, 0.18),
-        0 0 27px rgba({ACCENT_RGB}, 0.075);
+        0 0 11px rgba({ACCENT_RGB}, 0.17),
+        0 0 27px rgba({ACCENT_RGB}, 0.06);
 
     animation:
-        sidebarGlow 3.2s ease-in-out infinite;
+        sidebar-breathe 3.3s ease-in-out infinite;
 }}
 
-.sidebar-brand-title {{
+.brand-title {{
     font-size: 14px;
     font-weight: 800;
-    letter-spacing: 0.1px;
 
-    color: {TEXT};
+    letter-spacing: 0.1px;
 
     margin-bottom: 5px;
 }}
 
-.sidebar-brand-subtitle {{
+.brand-caption {{
+    color: {MUTED} !important;
+
     font-size: 10px;
     font-weight: 500;
-
-    color: {MUTED};
-}}
-
-.sidebar-divider {{
-    width: 100%;
-    height: 1px;
-
-    background: {DIVIDER};
-
-    margin: 0 0 20px 0;
 }}
 
 
 /* ==========================================================
-   SIDEBAR HEADINGS
+   SIDEBAR DIVIDERS
+   ========================================================== */
+
+.sidebar-divider {{
+    height: 1px;
+    width: 100%;
+
+    background: {BORDER};
+
+    margin:
+        0 0 20px 0;
+}}
+
+
+/* ==========================================================
+   CHAT HISTORY
    ========================================================== */
 
 .sidebar-heading {{
+    color: {TEXT};
+
     font-size: 14px;
     font-weight: 700;
 
-    color: {TEXT};
-
-    margin: 0 0 12px 0;
+    margin-bottom: 13px;
 }}
 
 .sidebar-empty {{
-    font-size: 11px;
+    color: {MUTED} !important;
 
-    color: {MUTED_2};
+    font-size: 11px;
 
     margin-bottom: 19px;
 }}
@@ -340,10 +319,10 @@ section[data-testid="stSidebar"] .stSelectbox {{
 }}
 
 section[data-testid="stSidebar"] .stSelectbox label {{
+    color: {TEXT} !important;
+
     font-size: 11px !important;
     font-weight: 700 !important;
-
-    color: {TEXT} !important;
 
     margin-bottom: 5px !important;
 }}
@@ -351,7 +330,7 @@ section[data-testid="stSidebar"] .stSelectbox label {{
 section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
     min-height: 36px !important;
 
-    background: {BUTTON} !important;
+    background: {PANEL_ALT} !important;
 
     border:
         1px solid {BORDER} !important;
@@ -363,11 +342,12 @@ section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
 
 section[data-testid="stSidebar"] div[data-baseweb="select"] > div:hover {{
     border-color:
-        rgba({ACCENT_RGB}, 0.35) !important;
+        rgba({ACCENT_RGB}, 0.40) !important;
 }}
 
 section[data-testid="stSidebar"] div[data-baseweb="select"] span {{
     color: {TEXT} !important;
+
     font-size: 11px !important;
 }}
 
@@ -381,21 +361,21 @@ section[data-testid="stSidebar"] svg {{
    ========================================================== */
 
 .appearance-title {{
-    margin-top: 12px;
-    margin-bottom: 10px;
-
     color: {TEXT};
 
     font-size: 14px;
     font-weight: 700;
+
+    margin:
+        13px 0 9px 0;
 }}
 
 .appearance-status {{
-    margin-top: 7px;
-
-    color: {MUTED};
+    color: {MUTED} !important;
 
     font-size: 10px;
+
+    margin-top: 7px;
 }}
 
 
@@ -410,9 +390,7 @@ section[data-testid="stSidebar"] .stButton {{
 section[data-testid="stSidebar"] .stButton > button {{
     min-height: 36px !important;
 
-    padding: 0 10px !important;
-
-    background: {BUTTON} !important;
+    background: {PANEL_ALT} !important;
 
     color: {TEXT} !important;
 
@@ -433,26 +411,13 @@ section[data-testid="stSidebar"] .stButton > button {{
 }}
 
 section[data-testid="stSidebar"] .stButton > button:hover {{
-    background: {BUTTON_HOVER} !important;
+    background: {PANEL} !important;
 
     border-color:
-        rgba({ACCENT_RGB}, 0.38) !important;
+        rgba({ACCENT_RGB}, 0.40) !important;
 
     box-shadow:
-        0 0 10px rgba({ACCENT_RGB}, 0.06) !important;
-}}
-
-
-/* ==========================================================
-   ACTIVE THEME / ACTIVE ACCENT BUTTON
-   ========================================================== */
-
-section[data-testid="stSidebar"] .theme-active button {{
-    border-color:
-        rgba({ACCENT_RGB}, 0.70) !important;
-
-    box-shadow:
-        0 0 9px rgba({ACCENT_RGB}, 0.10) !important;
+        0 0 10px rgba({ACCENT_RGB}, 0.05) !important;
 }}
 
 
@@ -464,8 +429,8 @@ section[data-testid="stSidebar"] .theme-active button {{
     width: 830px;
     max-width: calc(100vw - 340px);
 
-    margin-left: auto;
-    margin-right: auto;
+    margin:
+        0 auto;
 }}
 
 
@@ -479,68 +444,64 @@ section[data-testid="stSidebar"] .theme-active button {{
 
     min-height: 277px;
 
-    margin: 0 auto 19px auto;
+    margin:
+        0 auto 20px auto;
 
-    padding: 23px 30px 25px 30px;
+    padding:
+        23px 30px 27px 30px;
 
     box-sizing: border-box;
 
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
 
     text-align: center;
 
-    background: {PANEL};
+    background:
+        {PANEL};
 
     border:
-        1px solid rgba({ACCENT_RGB}, 0.82);
+        1px solid {ACCENT};
 
-    border-radius: 24px;
+    border-radius: 23px;
 
     box-shadow:
-        0 0 9px rgba({ACCENT_RGB}, 0.11),
-        0 0 32px rgba({ACCENT_RGB}, 0.045),
-        0 13px 30px rgba(0,0,0,0.22);
+        0 0 8px rgba({ACCENT_RGB}, 0.10),
+        0 0 30px rgba({ACCENT_RGB}, 0.04),
+        0 14px 30px rgba(0,0,0,0.20);
 
-    animation: heroGlow 3.6s ease-in-out infinite;
+    animation:
+        hero-breathe 3.6s ease-in-out infinite;
 }}
 
 .hero-icon {{
-    width: 57px;
-    height: 57px;
+    width: 56px;
+    height: 56px;
 
-    margin-bottom: 13px;
+    margin-bottom: 12px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
+    border:
+        1px solid {ACCENT};
+
     border-radius: 17px;
 
-    border:
-        1px solid rgba({ACCENT_RGB}, 0.86);
-
     background:
-        radial-gradient(
-            circle,
-            rgba({ACCENT_RGB}, 0.105),
-            rgba({ACCENT_RGB}, 0.015) 72%
-        );
+        rgba({ACCENT_RGB}, 0.055);
 
     box-shadow:
-        0 0 11px rgba({ACCENT_RGB}, 0.18),
-        0 0 29px rgba({ACCENT_RGB}, 0.07);
+        0 0 12px rgba({ACCENT_RGB}, 0.17),
+        0 0 28px rgba({ACCENT_RGB}, 0.06);
 
-    animation: iconGlow 3.1s ease-in-out infinite;
+    animation:
+        icon-breathe 3.1s ease-in-out infinite;
 }}
 
 .hero-title {{
-    max-width: 510px;
-
-    margin: 0;
-
     color: {ACCENT_SOFT};
 
     font-size: 35px;
@@ -549,42 +510,44 @@ section[data-testid="stSidebar"] .theme-active button {{
     font-weight: 800;
 
     letter-spacing: -1px;
+
+    margin: 0;
 }}
 
 .hero-description {{
-    margin:
-        13px 0 14px 0;
-
     color: {MUTED};
 
     font-size: 12px;
     line-height: 1.5;
+
+    margin:
+        13px 0 14px 0;
 }}
 
 .hero-badge {{
     display: inline-flex;
+
     align-items: center;
     justify-content: center;
 
-    padding: 7px 14px;
+    padding:
+        7px 14px;
+
+    border:
+        1px solid {ACCENT};
 
     border-radius: 999px;
 
-    border:
-        1px solid rgba({ACCENT_RGB}, 0.82);
+    color: {ACCENT};
 
     background:
         rgba({ACCENT_RGB}, 0.018);
 
-    color: {ACCENT};
-
     font-size: 10px;
     font-weight: 700;
 
-    box-shadow:
-        0 0 9px rgba({ACCENT_RGB}, 0.08);
-
-    animation: badgeGlow 2.9s ease-in-out infinite;
+    animation:
+        badge-breathe 2.9s ease-in-out infinite;
 }}
 
 
@@ -604,27 +567,20 @@ section[data-testid="stSidebar"] .theme-active button {{
     color: {MUTED};
 
     font-size: 11px;
-    font-weight: 500;
 }}
 
 .quick-row {{
     width: 830px;
     max-width: calc(100vw - 340px);
 
-    margin-left: auto;
-    margin-right: auto;
-}}
-
-.quick-row .stButton {{
-    margin-bottom: 9px !important;
+    margin:
+        0 auto;
 }}
 
 .quick-row .stButton > button {{
-    height: 37px !important;
-
     min-height: 37px !important;
 
-    background: {BUTTON} !important;
+    background: {PANEL} !important;
 
     color: {TEXT} !important;
 
@@ -641,28 +597,25 @@ section[data-testid="stSidebar"] .theme-active button {{
     transition:
         background .18s ease,
         border-color .18s ease,
-        transform .15s ease,
-        box-shadow .18s ease;
+        transform .15s ease;
 }}
 
 .quick-row .stButton > button:hover {{
-    background: {BUTTON_HOVER} !important;
+    background: {PANEL_ALT} !important;
 
     border-color:
-        rgba({ACCENT_RGB}, 0.35) !important;
+        rgba({ACCENT_RGB}, 0.38) !important;
 
-    box-shadow:
-        0 0 11px rgba({ACCENT_RGB}, 0.055) !important;
-
-    transform: translateY(-1px);
+    transform:
+        translateY(-1px);
 }}
 
 
 /* ==========================================================
-   NOTICE / DISCLAIMER
+   INFO BOX
    ========================================================== */
 
-.notice-box {{
+.notice {{
     width: 702px;
     max-width: calc(100vw - 420px);
 
@@ -674,27 +627,31 @@ section[data-testid="stSidebar"] .theme-active button {{
 
     box-sizing: border-box;
 
-    color: {MUTED};
-
     background:
-        rgba(255,255,255,0.025);
+        {PANEL};
+
+    color:
+        {MUTED};
 
     border:
-        1px solid {DIVIDER};
+        1px solid {BORDER};
 
     border-radius: 8px;
 
     font-size: 9px;
     line-height: 1.5;
-
-    text-align: left;
 }}
 
-.notice-box b {{
+.notice b {{
     color: {TEXT};
 }}
 
-.disclaimer-box {{
+
+/* ==========================================================
+   DISCLAIMER
+   ========================================================== */
+
+.disclaimer {{
     width: 830px;
     max-width: calc(100vw - 340px);
 
@@ -706,276 +663,223 @@ section[data-testid="stSidebar"] .theme-active button {{
 
     box-sizing: border-box;
 
-    color:
-        #c6a44d;
-
     background:
-        rgba(245,158,11,0.035);
+        rgba(245,158,11,0.04);
+
+    color:
+        #c8a54e;
 
     border:
-        1px solid rgba(245,158,11,0.23);
+        1px solid rgba(245,158,11,0.25);
 
     border-radius: 8px;
 
     font-size: 9px;
     line-height: 1.5;
-
-    text-align: left;
 }}
 
-.disclaimer-box b {{
-    color: #efc85e;
+.disclaimer b {{
+    color: #efc85c;
 }}
 
 
 /* ==========================================================
-   UPLOADER
+   FILE UPLOADER
    ========================================================== */
 
 [data-testid="stFileUploader"] {{
     width: 830px;
-    max-width: calc(100vw - 340px);
+
+    max-width:
+        calc(100vw - 340px);
 
     margin:
         0 auto;
 }}
 
 [data-testid="stFileUploaderDropzone"] {{
-    background: {PANEL_2} !important;
+    background:
+        {PANEL_ALT} !important;
 
     border:
-        1px dashed {DIVIDER} !important;
+        1px dashed {BORDER} !important;
 
-    border-radius: 10px !important;
-}}
-
-[data-testid="stFileUploaderDropzone"] button {{
-    border-radius: 8px !important;
-
-    border:
-        1px solid {BORDER} !important;
-
-    background: {BUTTON} !important;
-
-    color: {TEXT} !important;
-}}
-
-[data-testid="stFileUploader"] small {{
-    color: {MUTED} !important;
+    border-radius:
+        10px !important;
 }}
 
 
 /* ==========================================================
-   CHAT MESSAGES
+   CHAT
    ========================================================== */
 
 [data-testid="stChatMessage"] {{
     width: 830px;
-    max-width: calc(100vw - 340px);
 
-    margin-left: auto;
-    margin-right: auto;
+    max-width:
+        calc(100vw - 340px);
+
+    margin-left:
+        auto;
+
+    margin-right:
+        auto;
 }}
-
-[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {{
-    font-size: 13px;
-}}
-
-
-/* ==========================================================
-   CHAT INPUT
-   ========================================================== */
 
 [data-testid="stChatInput"] {{
     width: 702px !important;
-    max-width: calc(100vw - 420px) !important;
 
-    margin-left: auto !important;
-    margin-right: auto !important;
+    max-width:
+        calc(100vw - 420px) !important;
+
+    margin-left:
+        auto !important;
+
+    margin-right:
+        auto !important;
 }}
 
 [data-testid="stChatInput"] > div {{
-    min-height: 52px !important;
+    min-height:
+        52px !important;
 
-    background: {INPUT} !important;
+    background:
+        {PANEL} !important;
 
     border:
-        1px solid rgba({ACCENT_RGB}, 0.82) !important;
+        1px solid {ACCENT} !important;
 
-    border-radius: 16px !important;
+    border-radius:
+        16px !important;
 
     box-shadow:
-        0 0 9px rgba({ACCENT_RGB}, 0.09),
-        0 0 25px rgba({ACCENT_RGB}, 0.035);
+        0 0 9px rgba({ACCENT_RGB},0.09),
+        0 0 25px rgba({ACCENT_RGB},0.035);
 
     animation:
-        inputGlow 3.8s ease-in-out infinite;
+        input-breathe 3.8s ease-in-out infinite;
 }}
 
 [data-testid="stChatInput"] textarea {{
-    color: {TEXT} !important;
+    color:
+        {TEXT} !important;
 
-    font-size: 11px !important;
+    font-size:
+        11px !important;
 }}
 
 [data-testid="stChatInput"] textarea::placeholder {{
-    color: {MUTED} !important;
-}}
-
-[data-testid="stChatInput"] button {{
-    color: {TEXT} !important;
+    color:
+        {MUTED} !important;
 }}
 
 
 /* ==========================================================
-   NEON BREATHING
+   BREATHING NEON
    ========================================================== */
 
-@keyframes heroGlow {{
+@keyframes hero-breathe {{
 
     0%, 100% {{
         border-color:
-            rgba({ACCENT_RGB}, 0.64);
+            rgba({ACCENT_RGB},0.64);
 
         box-shadow:
-            0 0 7px rgba({ACCENT_RGB}, 0.07),
-            0 0 25px rgba({ACCENT_RGB}, 0.025),
-            0 13px 30px rgba(0,0,0,0.22);
+            0 0 7px rgba({ACCENT_RGB},0.07),
+            0 0 24px rgba({ACCENT_RGB},0.025),
+            0 14px 30px rgba(0,0,0,0.20);
     }}
 
     50% {{
         border-color:
-            rgba({ACCENT_RGB}, 0.99);
+            rgba({ACCENT_RGB},1);
 
         box-shadow:
-            0 0 11px rgba({ACCENT_RGB}, 0.19),
-            0 0 36px rgba({ACCENT_RGB}, 0.095),
-            0 13px 30px rgba(0,0,0,0.22);
+            0 0 11px rgba({ACCENT_RGB},0.20),
+            0 0 35px rgba({ACCENT_RGB},0.09),
+            0 14px 30px rgba(0,0,0,0.20);
     }}
 }}
 
-@keyframes iconGlow {{
+@keyframes icon-breathe {{
 
     0%, 100% {{
         border-color:
-            rgba({ACCENT_RGB}, 0.68);
+            rgba({ACCENT_RGB},0.66);
 
         box-shadow:
-            0 0 9px rgba({ACCENT_RGB}, 0.10),
-            0 0 23px rgba({ACCENT_RGB}, 0.035);
+            0 0 9px rgba({ACCENT_RGB},0.10),
+            0 0 22px rgba({ACCENT_RGB},0.035);
     }}
 
     50% {{
         border-color:
-            rgba({ACCENT_RGB}, 1);
+            rgba({ACCENT_RGB},1);
 
         box-shadow:
-            0 0 14px rgba({ACCENT_RGB}, 0.24),
-            0 0 32px rgba({ACCENT_RGB}, 0.09);
+            0 0 14px rgba({ACCENT_RGB},0.25),
+            0 0 32px rgba({ACCENT_RGB},0.09);
     }}
 }}
 
-@keyframes badgeGlow {{
+@keyframes badge-breathe {{
 
     0%, 100% {{
         border-color:
-            rgba({ACCENT_RGB}, 0.62);
+            rgba({ACCENT_RGB},0.62);
 
         box-shadow:
-            0 0 6px rgba({ACCENT_RGB}, 0.045);
+            0 0 6px rgba({ACCENT_RGB},0.04);
     }}
 
     50% {{
         border-color:
-            rgba({ACCENT_RGB}, 1);
+            rgba({ACCENT_RGB},1);
 
         box-shadow:
-            0 0 11px rgba({ACCENT_RGB}, 0.18),
-            0 0 21px rgba({ACCENT_RGB}, 0.07);
+            0 0 11px rgba({ACCENT_RGB},0.18),
+            0 0 20px rgba({ACCENT_RGB},0.07);
     }}
 }}
 
-@keyframes inputGlow {{
+@keyframes input-breathe {{
 
     0%, 100% {{
         border-color:
-            rgba({ACCENT_RGB}, 0.62);
+            rgba({ACCENT_RGB},0.62);
 
         box-shadow:
-            0 0 7px rgba({ACCENT_RGB}, 0.06);
+            0 0 7px rgba({ACCENT_RGB},0.06);
     }}
 
     50% {{
         border-color:
-            rgba({ACCENT_RGB}, 0.98);
+            rgba({ACCENT_RGB},0.98);
 
         box-shadow:
-            0 0 12px rgba({ACCENT_RGB}, 0.17),
-            0 0 27px rgba({ACCENT_RGB}, 0.065);
+            0 0 12px rgba({ACCENT_RGB},0.17),
+            0 0 27px rgba({ACCENT_RGB},0.065);
     }}
 }}
 
-@keyframes sidebarGlow {{
+@keyframes sidebar-breathe {{
 
     0%, 100% {{
         border-color:
-            rgba({ACCENT_RGB}, 0.66);
+            rgba({ACCENT_RGB},0.64);
 
         box-shadow:
-            0 0 9px rgba({ACCENT_RGB}, 0.10),
-            0 0 22px rgba({ACCENT_RGB}, 0.035);
+            0 0 9px rgba({ACCENT_RGB},0.10),
+            0 0 22px rgba({ACCENT_RGB},0.035);
     }}
 
     50% {{
         border-color:
-            rgba({ACCENT_RGB}, 1);
+            rgba({ACCENT_RGB},1);
 
         box-shadow:
-            0 0 14px rgba({ACCENT_RGB}, 0.23),
-            0 0 30px rgba({ACCENT_RGB}, 0.08);
-    }}
-}}
-
-
-/* ==========================================================
-   LIGHT THEME ADJUSTMENTS
-   ========================================================== */
-
-body {{
-    transition:
-        background-color .25s ease;
-}}
-
-[data-testid="stAppViewContainer"],
-section[data-testid="stSidebar"] {{
-    transition:
-        background-color .25s ease,
-        border-color .25s ease;
-}}
-
-
-/* ==========================================================
-   RESPONSIVE
-   ========================================================== */
-
-@media (max-width: 900px) {{
-
-    .hero,
-    .quick-label,
-    .quick-row,
-    .disclaimer-box,
-    [data-testid="stFileUploader"],
-    [data-testid="stChatMessage"] {{
-        width: calc(100vw - 320px) !important;
-
-        max-width: none !important;
-    }}
-
-    .notice-box,
-    [data-testid="stChatInput"] {{
-        width: calc(100vw - 360px) !important;
-
-        max-width: none !important;
+            0 0 14px rgba({ACCENT_RGB},0.23),
+            0 0 30px rgba({ACCENT_RGB},0.08);
     }}
 }}
 
@@ -989,20 +893,21 @@ section[data-testid="stSidebar"] {{
     .hero,
     .hero-icon,
     .hero-badge,
-    .sidebar-brand-icon,
+    .brand-icon,
     [data-testid="stChatInput"] > div {{
-        animation: none !important;
+        animation:
+            none !important;
     }}
 }}
 
 </style>
 """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
 # ===========================================================
-# API CLIENTS
+# API SETUP
 # ===========================================================
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -1021,15 +926,19 @@ if not GEMINI_API_KEY or not GROQ_API_KEY:
 @st.cache_resource(show_spinner=False)
 def init_ai_clients():
 
-    g_client = genai.Client(api_key=GEMINI_API_KEY)
-    groq_client = Groq(api_key=GROQ_API_KEY)
+    gemini = genai.Client(
+        api_key=GEMINI_API_KEY
+    )
 
-    return g_client, groq_client
+    groq = Groq(
+        api_key=GROQ_API_KEY
+    )
+
+    return gemini, groq
 
 
 gemini_client, groq_client = init_ai_clients()
 
-GEMINI_MODEL = "gemini-2.5-flash"
 GROQ_MODEL = "openai/gpt-oss-120b"
 
 
@@ -1039,48 +948,40 @@ GROQ_MODEL = "openai/gpt-oss-120b"
 
 with st.sidebar:
 
-    # Keep the native Streamlit collapse arrow untouched.
     st.markdown(
-        '<div class="sidebar-top"></div>',
+        '<div class="sidebar-spacer"></div>',
         unsafe_allow_html=True
     )
 
-    # -------------------------------------------------------
-    # BRAND
-    # -------------------------------------------------------
+    # ---------------- BRAND ----------------
 
     st.markdown(
         f"""
-        <div class="sidebar-brand">
+        <div class="brand-wrap">
 
-            <div class="sidebar-brand-icon">
+            <div class="brand-icon">
 
                 <svg
                     width="30"
                     height="30"
                     viewBox="0 0 50 50"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
                 >
 
                     <path
-                        d="
-                            M16 25V14
-                            C16 9.6 19.6 6 24 6
-                            C28.4 6 32 9.6 32 14V29
-                            C32 35.1 36.9 40 43 40
-                        "
+                        d="M16 25V14
+                           C16 9.6 19.6 6 24 6
+                           C28.4 6 32 9.6 32 14V29
+                           C32 35.1 36.9 40 43 40"
                         stroke="{ACCENT_SOFT}"
                         stroke-width="2.8"
                         stroke-linecap="round"
                     />
 
                     <path
-                        d="
-                            M16 20
-                            C12.1 20 9 23.1 9 27
-                            C9 30.9 12.1 34 16 34
-                        "
+                        d="M16 20
+                           C12.1 20 9 23.1 9 27
+                           C9 30.9 12.1 34 16 34"
                         stroke="{ACCENT}"
                         stroke-width="2.8"
                         stroke-linecap="round"
@@ -1106,17 +1007,17 @@ with st.sidebar:
 
             </div>
 
-            <div class="sidebar-brand-title">
+            <div class="brand-title">
                 AI HEALTHCARE
             </div>
 
-            <div class="sidebar-brand-subtitle">
+            <div class="brand-caption">
                 Smart health information assistant
             </div>
 
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.markdown(
@@ -1124,9 +1025,7 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    # -------------------------------------------------------
-    # CHAT HISTORY
-    # -------------------------------------------------------
+    # ---------------- CHAT HISTORY ----------------
 
     st.markdown(
         '<div class="sidebar-heading">💬 Chat History</div>',
@@ -1143,8 +1042,7 @@ with st.sidebar:
     else:
 
         st.caption(
-            f"{len(st.session_state.messages)} message"
-            f"{'' if len(st.session_state.messages) == 1 else 's'}"
+            f"{len(st.session_state.messages)} messages"
         )
 
     st.markdown(
@@ -1152,66 +1050,62 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    # -------------------------------------------------------
-    # ASSISTANT MODE
-    # -------------------------------------------------------
+    # ---------------- MODE ----------------
 
     st.session_state.app_mode = st.selectbox(
         "Assistant Mode",
         [
             "AI Medical Analyst",
             "Symptom Checker",
-            "Nutrition Coach"
+            "Nutrition Coach",
         ],
         index=[
             "AI Medical Analyst",
             "Symptom Checker",
-            "Nutrition Coach"
-        ].index(st.session_state.app_mode)
+            "Nutrition Coach",
+        ].index(
+            st.session_state.app_mode
+        ),
     )
 
-    # -------------------------------------------------------
-    # RESPONSE STYLE
-    # -------------------------------------------------------
+    # ---------------- RESPONSE STYLE ----------------
 
     st.session_state.response_style = st.selectbox(
         "Response Style",
         [
             "Balanced",
             "Concise",
-            "Detailed"
+            "Detailed",
         ],
         index=[
             "Balanced",
             "Concise",
-            "Detailed"
-        ].index(st.session_state.response_style)
+            "Detailed",
+        ].index(
+            st.session_state.response_style
+        ),
     )
 
-    # -------------------------------------------------------
-    # ACCENT COLORS
-    # -------------------------------------------------------
+    # ---------------- ACCENT ----------------
 
     st.session_state.accent = st.selectbox(
         "Accent",
         list(ACCENTS.keys()),
         index=list(ACCENTS.keys()).index(
             st.session_state.accent
-        )
+        ),
     )
 
-    # -------------------------------------------------------
-    # APPEARANCE
-    # -------------------------------------------------------
+    # ---------------- APPEARANCE ----------------
 
     st.markdown(
         '<div class="appearance-title">🎨 Appearance</div>',
         unsafe_allow_html=True
     )
 
-    theme_col1, theme_col2 = st.columns(2)
+    light_col, dark_col = st.columns(2)
 
-    with theme_col1:
+    with light_col:
 
         if st.button(
             "☀️ Light",
@@ -1223,7 +1117,7 @@ with st.sidebar:
                 st.session_state.theme = "Light"
                 st.rerun()
 
-    with theme_col2:
+    with dark_col:
 
         if st.button(
             "🌙 Dark",
@@ -1236,22 +1130,25 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown(
-        f'<div class="appearance-status">'
-        f'Active theme: {st.session_state.theme}'
-        f'</div>',
+        f"""
+        <div class="appearance-status">
+            Active theme: {st.session_state.theme}
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        '<div style="height:20px;"></div>',
+        unsafe_allow_html=True
+    )
 
     st.markdown(
         '<div class="sidebar-divider"></div>',
         unsafe_allow_html=True
     )
 
-    # -------------------------------------------------------
-    # CLEAR
-    # -------------------------------------------------------
+    # ---------------- CLEAR ----------------
 
     if st.button(
         "🗑️ Clear Conversation",
@@ -1277,27 +1174,22 @@ st.markdown(
                 height="33"
                 viewBox="0 0 50 50"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg"
             >
 
                 <path
-                    d="
-                        M16 25V14
-                        C16 9.6 19.6 6 24 6
-                        C28.4 6 32 9.6 32 14V29
-                        C32 35.1 36.9 40 43 40
-                    "
+                    d="M16 25V14
+                       C16 9.6 19.6 6 24 6
+                       C28.4 6 32 9.6 32 14V29
+                       C32 35.1 36.9 40 43 40"
                     stroke="{ACCENT_SOFT}"
                     stroke-width="2.8"
                     stroke-linecap="round"
                 />
 
                 <path
-                    d="
-                        M16 20
-                        C12.1 20 9 23.1 9 27
-                        C9 30.9 12.1 34 16 34
-                    "
+                    d="M16 20
+                       C12.1 20 9 23.1 9 27
+                       C9 30.9 12.1 34 16 34"
                     stroke="{ACCENT}"
                     stroke-width="2.8"
                     stroke-linecap="round"
@@ -1338,7 +1230,7 @@ st.markdown(
 
     </div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
@@ -1358,6 +1250,7 @@ st.markdown(
 
 q1, q2 = st.columns(2, gap="small")
 
+
 with q1:
 
     if st.button(
@@ -1369,7 +1262,7 @@ with q1:
             {
                 "role": "user",
                 "content":
-                    "Can you explain the basics of a standard blood test?"
+                    "Can you explain the basics of a standard blood test?",
             }
         )
 
@@ -1384,11 +1277,12 @@ with q1:
             {
                 "role": "user",
                 "content":
-                    "What are the common causes of chronic fatigue?"
+                    "What are the common causes of chronic fatigue?",
             }
         )
 
         st.rerun()
+
 
 with q2:
 
@@ -1401,7 +1295,7 @@ with q2:
             {
                 "role": "user",
                 "content":
-                    "Give me tips for maintaining a healthy balanced diet."
+                    "Give me tips for maintaining a healthy balanced diet.",
             }
         )
 
@@ -1416,11 +1310,12 @@ with q2:
             {
                 "role": "user",
                 "content":
-                    "How can I check or manage common medication side effects?"
+                    "How can I check or manage common medication side effects?",
             }
         )
 
         st.rerun()
+
 
 st.markdown(
     '</div>',
@@ -1429,18 +1324,18 @@ st.markdown(
 
 
 # ===========================================================
-# DATA NOTICE
+# NOTICE
 # ===========================================================
 
 st.markdown(
     """
-    <div class="notice-box">
+    <div class="notice">
         🔒 <b>Ephemeral Data Processing</b>
         — any medical document you attach is deleted automatically
         within 1 hour. Your chat history stays saved in this conversation.
     </div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
@@ -1450,7 +1345,7 @@ st.markdown(
 
 st.markdown(
     """
-    <div class="disclaimer-box">
+    <div class="disclaimer">
         ⚠️ <b>Important:</b>
         This AI Healthcare Assistant provides general informational
         support only. It does not diagnose medical conditions,
@@ -1458,12 +1353,12 @@ st.markdown(
         healthcare professional.
     </div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
 # ===========================================================
-# MEDICAL REPORT UPLOAD
+# FILE UPLOAD
 # ===========================================================
 
 uploaded_file = st.file_uploader(
@@ -1472,9 +1367,9 @@ uploaded_file = st.file_uploader(
         "jpg",
         "jpeg",
         "png",
-        "webp"
+        "webp",
     ],
-    label_visibility="collapsed"
+    label_visibility="collapsed",
 )
 
 
@@ -1486,7 +1381,9 @@ for msg in st.session_state.messages:
 
     with st.chat_message(msg["role"]):
 
-        st.markdown(msg["content"])
+        st.markdown(
+            msg["content"]
+        )
 
 
 # ===========================================================
@@ -1507,13 +1404,15 @@ if user_input:
     st.session_state.messages.append(
         {
             "role": "user",
-            "content": user_input
+            "content": user_input,
         }
     )
 
     with st.chat_message("user"):
 
-        st.markdown(user_input)
+        st.markdown(
+            user_input
+        )
 
     try:
 
@@ -1534,25 +1433,32 @@ if user_input:
                                 "Do not diagnose conditions or prescribe "
                                 "medication. Explain medical concepts "
                                 "clearly in simple language."
-                            )
+                            ),
                         },
                         {
                             "role": "user",
-                            "content": user_input
-                        }
+                            "content": user_input,
+                        },
                     ],
 
-                    temperature=0.2
+                    temperature=0.2,
                 )
 
-                answer = completion.choices[0].message.content
+                answer = (
+                    completion
+                    .choices[0]
+                    .message
+                    .content
+                )
 
-                st.markdown(answer)
+                st.markdown(
+                    answer
+                )
 
                 st.session_state.messages.append(
                     {
                         "role": "assistant",
-                        "content": answer
+                        "content": answer,
                     }
                 )
 
@@ -1563,3 +1469,6 @@ if user_input:
         )
 
 
+# ===========================================================
+# END
+# ===========================================================
