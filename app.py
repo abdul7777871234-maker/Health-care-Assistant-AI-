@@ -35,416 +35,602 @@ if "response_style" not in st.session_state:
 if "accent" not in st.session_state:
     st.session_state.accent = "Rose"
 
+# Application MUST start in dark theme.
+if "theme" not in st.session_state:
+    st.session_state.theme = "Dark"
+
 
 # ===========================================================
-# COMPLETE VISUAL SYSTEM
+# ACCENT PALETTES
+# ===========================================================
+
+ACCENTS = {
+    "Rose": {
+        "accent": "#ff3d78",
+        "accent_soft": "#ff9dbb",
+        "accent_rgb": "255,61,120",
+    },
+
+    "Blue": {
+        "accent": "#4da3ff",
+        "accent_soft": "#9dccff",
+        "accent_rgb": "77,163,255",
+    },
+
+    "Cyan": {
+        "accent": "#35d8ff",
+        "accent_soft": "#9cefff",
+        "accent_rgb": "53,216,255",
+    },
+
+    "Violet": {
+        "accent": "#9b6cff",
+        "accent_soft": "#c7b0ff",
+        "accent_rgb": "155,108,255",
+    },
+
+    "Emerald": {
+        "accent": "#32d296",
+        "accent_soft": "#9af0ce",
+        "accent_rgb": "50,210,150",
+    },
+
+    "Amber": {
+        "accent": "#ffb52e",
+        "accent_soft": "#ffd889",
+        "accent_rgb": "255,181,46",
+    },
+}
+
+
+accent_data = ACCENTS[st.session_state.accent]
+
+ACCENT = accent_data["accent"]
+ACCENT_SOFT = accent_data["accent_soft"]
+ACCENT_RGB = accent_data["accent_rgb"]
+
+
+# ===========================================================
+# THEME VARIABLES
+# ===========================================================
+
+if st.session_state.theme == "Dark":
+
+    BG = "#07090f"
+    SIDEBAR = "#0b0e17"
+    PANEL = "#11141e"
+    PANEL_2 = "#10131c"
+
+    TEXT = "#f3f4f7"
+    MUTED = "#9aa1ad"
+    MUTED_2 = "#737b89"
+
+    BUTTON = "#10141e"
+    BUTTON_HOVER = "#141925"
+
+    INPUT = "#11151f"
+
+    DIVIDER = "rgba(255,255,255,0.08)"
+    BORDER = "rgba(255,255,255,0.075)"
+
+else:
+
+    BG = "#f5f7fb"
+    SIDEBAR = "#ffffff"
+    PANEL = "#ffffff"
+    PANEL_2 = "#f9fafc"
+
+    TEXT = "#1f2430"
+    MUTED = "#667085"
+    MUTED_2 = "#8a93a1"
+
+    BUTTON = "#ffffff"
+    BUTTON_HOVER = "#f7f9fc"
+
+    INPUT = "#ffffff"
+
+    DIVIDER = "rgba(20,30,50,0.10)"
+    BORDER = "rgba(20,30,50,0.10)"
+
+
+# ===========================================================
+# CUSTOM CSS
 # ===========================================================
 
 st.markdown(
-r"""
+    f"""
 <style>
 
 /* ==========================================================
-   GLOBAL
+   CORE PAGE
    ========================================================== */
 
-:root {
-    --bg: #080a10;
-    --sidebar: #0c0f18;
-    --panel: #11141e;
-    --panel-2: #0f121b;
-    --border: rgba(255,255,255,0.075);
+html,
+body,
+[data-testid="stAppViewContainer"] {{
+    background: {BG} !important;
+}}
 
-    --rose: #ff3d78;
-    --rose-soft: #ff9dbb;
-    --rose-dim: rgba(255,61,120,0.20);
-
-    --text: #f4f5f8;
-    --muted: #9aa1ae;
-    --muted-2: #747b88;
-
-    --warning: #f7c14a;
-}
-
-html, body, [data-testid="stAppViewContainer"] {
-    background: var(--bg) !important;
-}
-
-.stApp {
+.stApp {{
     background:
         radial-gradient(
-            circle at 55% 8%,
-            rgba(255, 40, 100, 0.025),
-            transparent 28%
+            circle at 52% 6%,
+            rgba({ACCENT_RGB}, 0.035),
+            transparent 26%
         ),
-        #080a10 !important;
-    color: var(--text);
-}
+        {BG} !important;
 
-.main {
+    color: {TEXT} !important;
+}}
+
+.main {{
     background: transparent !important;
-}
+}}
 
-.block-container {
-    max-width: 1180px !important;
-    padding-top: 28px !important;
-    padding-bottom: 110px !important;
-}
+.block-container {{
+    width: 100% !important;
+    max-width: none !important;
+
+    padding-top: 26px !important;
+    padding-bottom: 100px !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+}}
+
+
+/* ==========================================================
+   KEEP STREAMLIT NATIVE SIDEBAR COLLAPSE ARROW
+   ========================================================== */
+
+/*
+   IMPORTANT:
+   Do NOT hide stHeader / stToolbar.
+   Streamlit's native sidebar collapse arrow lives there.
+*/
+
+header[data-testid="stHeader"] {{
+    background: transparent !important;
+}}
+
+#MainMenu {{
+    visibility: hidden !important;
+}}
+
+footer {{
+    visibility: hidden !important;
+}}
 
 
 /* ==========================================================
    SIDEBAR
    ========================================================== */
 
-section[data-testid="stSidebar"] {
+section[data-testid="stSidebar"] {{
     width: 270px !important;
     min-width: 270px !important;
     max-width: 270px !important;
 
-    background: #0b0e17 !important;
-    border-right: 1px solid rgba(255,255,255,0.075) !important;
-}
+    background: {SIDEBAR} !important;
 
-section[data-testid="stSidebar"] > div {
-    padding: 0 18px 18px 18px !important;
-}
+    border-right: 1px solid {DIVIDER} !important;
+}}
 
-section[data-testid="stSidebar"] * {
-    color: var(--text);
-}
+section[data-testid="stSidebar"] > div {{
+    padding: 10px 18px 18px 18px !important;
+}}
+
+section[data-testid="stSidebar"] * {{
+    color: {TEXT};
+}}
 
 
-/* Sidebar top menu */
+/* Native collapse control */
+[data-testid="collapsedControl"] button {{
+    color: {MUTED} !important;
+}}
 
-.sidebar-menu {
+[data-testid="collapsedControl"] button:hover {{
+    color: {ACCENT} !important;
+}}
+
+
+/* ==========================================================
+   SIDEBAR BRAND
+   ========================================================== */
+
+.sidebar-top {{
+    min-height: 31px;
+
     display: flex;
+    justify-content: flex-end;
     align-items: center;
-    justify-content: flex-start;
-    margin-top: -3px;
-    margin-bottom: 16px;
-}
 
-.menu-box {
-    width: 39px;
-    height: 39px;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px;
+    margin-bottom: 11px;
+}}
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    background: #101521;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.18);
-}
-
-.menu-label {
-    font-size: 6px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #a7adba;
-    margin-bottom: 2px;
-}
-
-.menu-close {
-    font-size: 22px;
-    line-height: 16px;
-    color: #e2e5eb;
-}
-
-
-/* Sidebar brand */
-
-.brand-wrap {
+.sidebar-brand {{
     text-align: center;
-    padding: 0 0 19px 0;
-}
+    padding-bottom: 19px;
+}}
 
-.brand-icon {
+.sidebar-brand-icon {{
     width: 51px;
     height: 51px;
 
-    margin: 0 auto 11px auto;
+    margin: 0 auto 10px auto;
 
-    border: 1px solid rgba(255,61,120,0.80);
     border-radius: 16px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
+    border: 1px solid rgba({ACCENT_RGB}, 0.82);
+
     background:
         radial-gradient(
             circle,
-            rgba(255,61,120,0.08),
-            rgba(255,61,120,0.015) 70%
+            rgba({ACCENT_RGB}, 0.10),
+            rgba({ACCENT_RGB}, 0.015) 72%
         );
 
     box-shadow:
-        0 0 12px rgba(255,61,120,0.18),
-        0 0 26px rgba(255,61,120,0.07);
+        0 0 12px rgba({ACCENT_RGB}, 0.18),
+        0 0 27px rgba({ACCENT_RGB}, 0.075);
 
-    animation: sidebar-breathe 3.3s ease-in-out infinite;
-}
+    animation:
+        sidebarGlow 3.2s ease-in-out infinite;
+}}
 
-.brand-title {
+.sidebar-brand-title {{
     font-size: 14px;
     font-weight: 800;
-    letter-spacing: -0.2px;
-    color: #f0f1f5;
-    margin-bottom: 5px;
-}
+    letter-spacing: 0.1px;
 
-.brand-caption {
+    color: {TEXT};
+
+    margin-bottom: 5px;
+}}
+
+.sidebar-brand-subtitle {{
     font-size: 10px;
     font-weight: 500;
-    color: #b5bac5;
-}
 
+    color: {MUTED};
+}}
 
-/* Sidebar section */
-
-.sidebar-heading {
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0 0 13px 0;
-    color: #eef0f4;
-}
-
-.sidebar-empty {
-    font-size: 12px;
-    color: #858c99;
-    margin-bottom: 18px;
-}
-
-
-/* Sidebar dividers */
-
-.sidebar-divider {
-    height: 1px;
+.sidebar-divider {{
     width: 100%;
-    background: rgba(255,255,255,0.08);
+    height: 1px;
+
+    background: {DIVIDER};
+
     margin: 0 0 20px 0;
-}
+}}
 
 
 /* ==========================================================
-   STREAMLIT SELECTBOX OVERRIDES
+   SIDEBAR HEADINGS
    ========================================================== */
 
-section[data-testid="stSidebar"] .stSelectbox {
-    margin-bottom: 8px;
-}
+.sidebar-heading {{
+    font-size: 14px;
+    font-weight: 700;
 
-section[data-testid="stSidebar"] .stSelectbox label {
-    color: #f2f3f5 !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    margin-bottom: 5px !important;
-}
+    color: {TEXT};
 
-section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-    background: #111722 !important;
-    border: 1px solid rgba(255,255,255,0.065) !important;
-    border-radius: 6px !important;
-    min-height: 36px !important;
-    box-shadow: none !important;
-}
+    margin: 0 0 12px 0;
+}}
 
-section[data-testid="stSidebar"] div[data-baseweb="select"] > div:hover {
-    border-color: rgba(255,255,255,0.11) !important;
-}
+.sidebar-empty {{
+    font-size: 11px;
 
-section[data-testid="stSidebar"] div[data-baseweb="select"] span {
-    color: #f1f3f6 !important;
+    color: {MUTED_2};
+
+    margin-bottom: 19px;
+}}
+
+
+/* ==========================================================
+   SELECT BOXES
+   ========================================================== */
+
+section[data-testid="stSidebar"] .stSelectbox {{
+    margin-bottom: 7px !important;
+}}
+
+section[data-testid="stSidebar"] .stSelectbox label {{
     font-size: 11px !important;
-}
+    font-weight: 700 !important;
 
-section[data-testid="stSidebar"] svg {
-    fill: #e6e8ed !important;
-}
+    color: {TEXT} !important;
+
+    margin-bottom: 5px !important;
+}}
+
+section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
+    min-height: 36px !important;
+
+    background: {BUTTON} !important;
+
+    border:
+        1px solid {BORDER} !important;
+
+    border-radius: 7px !important;
+
+    box-shadow: none !important;
+}}
+
+section[data-testid="stSidebar"] div[data-baseweb="select"] > div:hover {{
+    border-color:
+        rgba({ACCENT_RGB}, 0.35) !important;
+}}
+
+section[data-testid="stSidebar"] div[data-baseweb="select"] span {{
+    color: {TEXT} !important;
+    font-size: 11px !important;
+}}
+
+section[data-testid="stSidebar"] svg {{
+    fill: {TEXT} !important;
+}}
 
 
 /* ==========================================================
    APPEARANCE
    ========================================================== */
 
-.appearance-title {
+.appearance-title {{
+    margin-top: 12px;
+    margin-bottom: 10px;
+
+    color: {TEXT};
+
     font-size: 14px;
     font-weight: 700;
-    color: #f0f2f5;
-    margin-top: 14px;
-    margin-bottom: 10px;
-}
+}}
 
-.appearance-status {
-    font-size: 11px;
-    color: #8e95a2;
+.appearance-status {{
     margin-top: 7px;
-}
+
+    color: {MUTED};
+
+    font-size: 10px;
+}}
 
 
 /* ==========================================================
    SIDEBAR BUTTONS
    ========================================================== */
 
-section[data-testid="stSidebar"] .stButton {
+section[data-testid="stSidebar"] .stButton {{
     margin: 0 !important;
-}
+}}
 
-section[data-testid="stSidebar"] .stButton > button {
+section[data-testid="stSidebar"] .stButton > button {{
     min-height: 36px !important;
 
-    background: #111722 !important;
-    color: #eef0f4 !important;
+    padding: 0 10px !important;
 
-    border: 1px solid rgba(255,255,255,0.075) !important;
+    background: {BUTTON} !important;
+
+    color: {TEXT} !important;
+
+    border:
+        1px solid {BORDER} !important;
+
     border-radius: 7px !important;
 
     font-size: 11px !important;
     font-weight: 600 !important;
 
-    transition:
-        border-color .2s ease,
-        background .2s ease,
-        box-shadow .2s ease;
-}
+    box-shadow: none !important;
 
-section[data-testid="stSidebar"] .stButton > button:hover {
-    background: #141925 !important;
-    border-color: rgba(255,61,120,0.25) !important;
-}
+    transition:
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease;
+}}
+
+section[data-testid="stSidebar"] .stButton > button:hover {{
+    background: {BUTTON_HOVER} !important;
+
+    border-color:
+        rgba({ACCENT_RGB}, 0.38) !important;
+
+    box-shadow:
+        0 0 10px rgba({ACCENT_RGB}, 0.06) !important;
+}}
+
+
+/* ==========================================================
+   ACTIVE THEME / ACTIVE ACCENT BUTTON
+   ========================================================== */
+
+section[data-testid="stSidebar"] .theme-active button {{
+    border-color:
+        rgba({ACCENT_RGB}, 0.70) !important;
+
+    box-shadow:
+        0 0 9px rgba({ACCENT_RGB}, 0.10) !important;
+}}
+
+
+/* ==========================================================
+   MAIN CONTENT WIDTH
+   ========================================================== */
+
+.reference-width {{
+    width: 830px;
+    max-width: calc(100vw - 340px);
+
+    margin-left: auto;
+    margin-right: auto;
+}}
 
 
 /* ==========================================================
    HERO
    ========================================================== */
 
-.hero-container {
+.hero {{
     width: 830px;
-    max-width: calc(100vw - 350px);
+    max-width: calc(100vw - 340px);
 
-    margin: 0 auto 21px auto;
+    min-height: 277px;
 
-    padding: 22px 30px 28px 30px;
+    margin: 0 auto 19px auto;
 
-    background: #11141e;
+    padding: 23px 30px 25px 30px;
 
-    border: 1px solid rgba(255,61,120,0.75);
-    border-radius: 23px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 
     text-align: center;
 
+    background: {PANEL};
+
+    border:
+        1px solid rgba({ACCENT_RGB}, 0.82);
+
+    border-radius: 24px;
+
     box-shadow:
-        0 0 7px rgba(255,61,120,0.10),
-        0 0 24px rgba(255,61,120,0.055),
-        0 15px 35px rgba(0,0,0,0.35);
+        0 0 9px rgba({ACCENT_RGB}, 0.11),
+        0 0 32px rgba({ACCENT_RGB}, 0.045),
+        0 13px 30px rgba(0,0,0,0.22);
 
-    animation: hero-breathe 3.6s ease-in-out infinite;
-}
+    animation: heroGlow 3.6s ease-in-out infinite;
+}}
 
-.hero-icon {
-    width: 56px;
-    height: 56px;
+.hero-icon {{
+    width: 57px;
+    height: 57px;
 
-    margin: 0 auto 11px auto;
-
-    border-radius: 17px;
+    margin-bottom: 13px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    border: 1px solid rgba(255,61,120,0.82);
+    border-radius: 17px;
+
+    border:
+        1px solid rgba({ACCENT_RGB}, 0.86);
 
     background:
         radial-gradient(
             circle,
-            rgba(255,61,120,0.09),
-            rgba(255,61,120,0.015) 75%
+            rgba({ACCENT_RGB}, 0.105),
+            rgba({ACCENT_RGB}, 0.015) 72%
         );
 
     box-shadow:
-        0 0 12px rgba(255,61,120,0.16),
-        0 0 28px rgba(255,61,120,0.07);
+        0 0 11px rgba({ACCENT_RGB}, 0.18),
+        0 0 29px rgba({ACCENT_RGB}, 0.07);
 
-    animation: icon-breathe 3s ease-in-out infinite;
-}
+    animation: iconGlow 3.1s ease-in-out infinite;
+}}
 
-.hero-title {
-    color: #f4f5f8;
-    font-weight: 800;
-    font-size: 31px;
-    line-height: 1.2;
+.hero-title {{
+    max-width: 510px;
 
     margin: 0;
 
-    letter-spacing: -0.8px;
-}
+    color: {ACCENT_SOFT};
 
-.hero-description {
-    color: #9ca3af;
+    font-size: 35px;
+    line-height: 1.25;
 
-    margin: 10px 0 14px 0;
+    font-weight: 800;
 
-    font-size: 13px;
+    letter-spacing: -1px;
+}}
+
+.hero-description {{
+    margin:
+        13px 0 14px 0;
+
+    color: {MUTED};
+
+    font-size: 12px;
     line-height: 1.5;
-}
+}}
 
-.hero-badge {
+.hero-badge {{
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
     padding: 7px 14px;
 
-    color: #ff3d78;
+    border-radius: 999px;
+
+    border:
+        1px solid rgba({ACCENT_RGB}, 0.82);
+
+    background:
+        rgba({ACCENT_RGB}, 0.018);
+
+    color: {ACCENT};
 
     font-size: 10px;
     font-weight: 700;
 
-    border: 1px solid rgba(255,61,120,0.72);
-    border-radius: 999px;
-
-    background: rgba(255,61,120,0.02);
-
     box-shadow:
-        0 0 8px rgba(255,61,120,0.09);
+        0 0 9px rgba({ACCENT_RGB}, 0.08);
 
-    animation: badge-breathe 2.9s ease-in-out infinite;
-}
+    animation: badgeGlow 2.9s ease-in-out infinite;
+}}
 
 
 /* ==========================================================
    QUICK QUESTIONS
    ========================================================== */
 
-.quick-label {
+.quick-label {{
+    width: 830px;
+    max-width: calc(100vw - 340px);
+
+    margin:
+        0 auto 9px auto;
+
     text-align: center;
 
-    color: #9da3ae;
+    color: {MUTED};
 
     font-size: 11px;
     font-weight: 500;
+}}
 
-    margin: 5px 0 9px 0;
-}
+.quick-row {{
+    width: 830px;
+    max-width: calc(100vw - 340px);
 
+    margin-left: auto;
+    margin-right: auto;
+}}
 
-/* Main-area Streamlit buttons */
+.quick-row .stButton {{
+    margin-bottom: 9px !important;
+}}
 
-div[data-testid="column"] .stButton {
-    margin-bottom: 9px;
-}
+.quick-row .stButton > button {{
+    height: 37px !important;
 
-div[data-testid="column"] .stButton > button {
     min-height: 37px !important;
 
-    background: #10141e !important;
-    color: #e9ebef !important;
+    background: {BUTTON} !important;
 
-    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: {TEXT} !important;
+
+    border:
+        1px solid {BORDER} !important;
+
     border-radius: 11px !important;
 
     font-size: 11px !important;
@@ -453,320 +639,361 @@ div[data-testid="column"] .stButton > button {
     box-shadow: none !important;
 
     transition:
-        background .2s ease,
-        border-color .2s ease,
-        box-shadow .2s ease,
-        transform .15s ease;
-}
+        background .18s ease,
+        border-color .18s ease,
+        transform .15s ease,
+        box-shadow .18s ease;
+}}
 
-div[data-testid="column"] .stButton > button:hover {
-    background: #121722 !important;
+.quick-row .stButton > button:hover {{
+    background: {BUTTON_HOVER} !important;
 
-    border-color: rgba(255,61,120,0.22) !important;
+    border-color:
+        rgba({ACCENT_RGB}, 0.35) !important;
 
     box-shadow:
-        0 0 10px rgba(255,61,120,0.035) !important;
+        0 0 11px rgba({ACCENT_RGB}, 0.055) !important;
 
     transform: translateY(-1px);
-}
+}}
 
 
 /* ==========================================================
-   INFORMATION BOXES
+   NOTICE / DISCLAIMER
    ========================================================== */
 
-.notice-box {
-    width: 830px;
-    max-width: calc(100vw - 350px);
+.notice-box {{
+    width: 702px;
+    max-width: calc(100vw - 420px);
 
-    margin: 17px auto 9px auto;
+    margin:
+        14px auto 9px auto;
 
-    padding: 9px 15px;
+    padding:
+        9px 14px;
 
-    background: rgba(255,255,255,0.025);
+    box-sizing: border-box;
 
-    border: 1px solid rgba(255,255,255,0.08);
+    color: {MUTED};
 
-    border-radius: 8px;
+    background:
+        rgba(255,255,255,0.025);
 
-    color: #8f96a3;
-
-    font-size: 10px;
-    line-height: 1.45;
-
-    text-align: left;
-}
-
-.notice-box b {
-    color: #e6e8ec;
-}
-
-
-.disclaimer-box {
-    width: 830px;
-    max-width: calc(100vw - 350px);
-
-    margin: 0 auto 20px auto;
-
-    padding: 9px 15px;
-
-    background: rgba(245,158,11,0.035);
-
-    border: 1px solid rgba(245,158,11,0.24);
+    border:
+        1px solid {DIVIDER};
 
     border-radius: 8px;
 
-    color: #c8a34f;
-
-    font-size: 10px;
-    line-height: 1.45;
+    font-size: 9px;
+    line-height: 1.5;
 
     text-align: left;
-}
+}}
 
-.disclaimer-box b {
-    color: #eec75e;
-}
+.notice-box b {{
+    color: {TEXT};
+}}
+
+.disclaimer-box {{
+    width: 830px;
+    max-width: calc(100vw - 340px);
+
+    margin:
+        0 auto 14px auto;
+
+    padding:
+        9px 14px;
+
+    box-sizing: border-box;
+
+    color:
+        #c6a44d;
+
+    background:
+        rgba(245,158,11,0.035);
+
+    border:
+        1px solid rgba(245,158,11,0.23);
+
+    border-radius: 8px;
+
+    font-size: 9px;
+    line-height: 1.5;
+
+    text-align: left;
+}}
+
+.disclaimer-box b {{
+    color: #efc85e;
+}}
 
 
 /* ==========================================================
-   FILE UPLOADER
+   UPLOADER
    ========================================================== */
 
-[data-testid="stFileUploader"] {
+[data-testid="stFileUploader"] {{
     width: 830px;
-    max-width: calc(100vw - 350px);
-    margin: 0 auto;
-}
+    max-width: calc(100vw - 340px);
 
-[data-testid="stFileUploaderDropzone"] {
-    background: #10141e !important;
-    border: 1px dashed rgba(255,255,255,0.10) !important;
+    margin:
+        0 auto;
+}}
+
+[data-testid="stFileUploaderDropzone"] {{
+    background: {PANEL_2} !important;
+
+    border:
+        1px dashed {DIVIDER} !important;
+
     border-radius: 10px !important;
-}
+}}
 
-[data-testid="stFileUploader"] small {
-    color: #8f96a3 !important;
-}
+[data-testid="stFileUploaderDropzone"] button {{
+    border-radius: 8px !important;
+
+    border:
+        1px solid {BORDER} !important;
+
+    background: {BUTTON} !important;
+
+    color: {TEXT} !important;
+}}
+
+[data-testid="stFileUploader"] small {{
+    color: {MUTED} !important;
+}}
 
 
 /* ==========================================================
    CHAT MESSAGES
    ========================================================== */
 
-[data-testid="stChatMessage"] {
+[data-testid="stChatMessage"] {{
     width: 830px;
-    max-width: calc(100vw - 350px);
+    max-width: calc(100vw - 340px);
 
     margin-left: auto;
     margin-right: auto;
-}
+}}
 
-[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {{
     font-size: 13px;
-}
+}}
 
 
 /* ==========================================================
-   CHAT INPUT — REFERENCE LOOK
+   CHAT INPUT
    ========================================================== */
 
-[data-testid="stChatInput"] {
-    width: 830px !important;
-    max-width: calc(100vw - 350px) !important;
+[data-testid="stChatInput"] {{
+    width: 702px !important;
+    max-width: calc(100vw - 420px) !important;
 
     margin-left: auto !important;
     margin-right: auto !important;
-}
+}}
 
-[data-testid="stChatInput"] > div {
-    background: #11151f !important;
+[data-testid="stChatInput"] > div {{
+    min-height: 52px !important;
 
-    border: 1px solid rgba(255,61,120,0.75) !important;
+    background: {INPUT} !important;
+
+    border:
+        1px solid rgba({ACCENT_RGB}, 0.82) !important;
 
     border-radius: 16px !important;
 
     box-shadow:
-        0 0 8px rgba(255,61,120,0.10),
-        0 0 22px rgba(255,61,120,0.045);
+        0 0 9px rgba({ACCENT_RGB}, 0.09),
+        0 0 25px rgba({ACCENT_RGB}, 0.035);
 
-    animation: input-breathe 3.8s ease-in-out infinite;
-}
+    animation:
+        inputGlow 3.8s ease-in-out infinite;
+}}
 
-[data-testid="stChatInput"] textarea {
-    color: #e8eaf0 !important;
-    font-size: 12px !important;
-}
+[data-testid="stChatInput"] textarea {{
+    color: {TEXT} !important;
 
-[data-testid="stChatInput"] textarea::placeholder {
-    color: #9097a4 !important;
-}
+    font-size: 11px !important;
+}}
 
-[data-testid="stChatInput"] button {
-    color: #e9ebf0 !important;
-}
+[data-testid="stChatInput"] textarea::placeholder {{
+    color: {MUTED} !important;
+}}
 
-
-/* ==========================================================
-   REMOVE UNNECESSARY STREAMLIT CHROME
-   ========================================================== */
-
-#MainMenu {
-    visibility: hidden;
-}
-
-footer {
-    visibility: hidden;
-}
-
-header[data-testid="stHeader"] {
-    background: transparent !important;
-}
-
-[data-testid="stToolbar"] {
-    visibility: hidden !important;
-    height: 0 !important;
-}
-
-[data-testid="stDecoration"] {
-    display: none !important;
-}
+[data-testid="stChatInput"] button {{
+    color: {TEXT} !important;
+}}
 
 
 /* ==========================================================
    NEON BREATHING
    ========================================================== */
 
-@keyframes hero-breathe {
+@keyframes heroGlow {{
 
-    0%, 100% {
-        border-color: rgba(255,61,120,0.65);
-
-        box-shadow:
-            0 0 7px rgba(255,61,120,0.08),
-            0 0 24px rgba(255,61,120,0.035),
-            0 15px 35px rgba(0,0,0,0.35);
-    }
-
-    50% {
-        border-color: rgba(255,61,120,0.98);
+    0%, 100% {{
+        border-color:
+            rgba({ACCENT_RGB}, 0.64);
 
         box-shadow:
-            0 0 10px rgba(255,61,120,0.19),
-            0 0 34px rgba(255,61,120,0.10),
-            0 15px 35px rgba(0,0,0,0.35);
-    }
-}
+            0 0 7px rgba({ACCENT_RGB}, 0.07),
+            0 0 25px rgba({ACCENT_RGB}, 0.025),
+            0 13px 30px rgba(0,0,0,0.22);
+    }}
 
-
-@keyframes icon-breathe {
-
-    0%, 100% {
-        border-color: rgba(255,61,120,0.70);
+    50% {{
+        border-color:
+            rgba({ACCENT_RGB}, 0.99);
 
         box-shadow:
-            0 0 10px rgba(255,61,120,0.13),
-            0 0 23px rgba(255,61,120,0.05);
-    }
+            0 0 11px rgba({ACCENT_RGB}, 0.19),
+            0 0 36px rgba({ACCENT_RGB}, 0.095),
+            0 13px 30px rgba(0,0,0,0.22);
+    }}
+}}
 
-    50% {
-        border-color: rgba(255,61,120,1);
+@keyframes iconGlow {{
 
-        box-shadow:
-            0 0 13px rgba(255,61,120,0.28),
-            0 0 31px rgba(255,61,120,0.12);
-    }
-}
-
-
-@keyframes badge-breathe {
-
-    0%, 100% {
-        border-color: rgba(255,61,120,0.62);
+    0%, 100% {{
+        border-color:
+            rgba({ACCENT_RGB}, 0.68);
 
         box-shadow:
-            0 0 6px rgba(255,61,120,0.05);
-    }
+            0 0 9px rgba({ACCENT_RGB}, 0.10),
+            0 0 23px rgba({ACCENT_RGB}, 0.035);
+    }}
 
-    50% {
-        border-color: rgba(255,61,120,1);
-
-        box-shadow:
-            0 0 10px rgba(255,61,120,0.17),
-            0 0 19px rgba(255,61,120,0.07);
-    }
-}
-
-
-@keyframes input-breathe {
-
-    0%, 100% {
-        border-color: rgba(255,61,120,0.63);
+    50% {{
+        border-color:
+            rgba({ACCENT_RGB}, 1);
 
         box-shadow:
-            0 0 7px rgba(255,61,120,0.07);
-    }
+            0 0 14px rgba({ACCENT_RGB}, 0.24),
+            0 0 32px rgba({ACCENT_RGB}, 0.09);
+    }}
+}}
 
-    50% {
-        border-color: rgba(255,61,120,0.97);
+@keyframes badgeGlow {{
+
+    0%, 100% {{
+        border-color:
+            rgba({ACCENT_RGB}, 0.62);
 
         box-shadow:
-            0 0 11px rgba(255,61,120,0.16),
-            0 0 26px rgba(255,61,120,0.07);
-    }
-}
+            0 0 6px rgba({ACCENT_RGB}, 0.045);
+    }}
 
+    50% {{
+        border-color:
+            rgba({ACCENT_RGB}, 1);
 
-@keyframes sidebar-breathe {
-
-    0%, 100% {
         box-shadow:
-            0 0 9px rgba(255,61,120,0.12),
-            0 0 21px rgba(255,61,120,0.04);
-    }
+            0 0 11px rgba({ACCENT_RGB}, 0.18),
+            0 0 21px rgba({ACCENT_RGB}, 0.07);
+    }}
+}}
 
-    50% {
+@keyframes inputGlow {{
+
+    0%, 100% {{
+        border-color:
+            rgba({ACCENT_RGB}, 0.62);
+
         box-shadow:
-            0 0 14px rgba(255,61,120,0.23),
-            0 0 30px rgba(255,61,120,0.08);
-    }
-}
+            0 0 7px rgba({ACCENT_RGB}, 0.06);
+    }}
+
+    50% {{
+        border-color:
+            rgba({ACCENT_RGB}, 0.98);
+
+        box-shadow:
+            0 0 12px rgba({ACCENT_RGB}, 0.17),
+            0 0 27px rgba({ACCENT_RGB}, 0.065);
+    }}
+}}
+
+@keyframes sidebarGlow {{
+
+    0%, 100% {{
+        border-color:
+            rgba({ACCENT_RGB}, 0.66);
+
+        box-shadow:
+            0 0 9px rgba({ACCENT_RGB}, 0.10),
+            0 0 22px rgba({ACCENT_RGB}, 0.035);
+    }}
+
+    50% {{
+        border-color:
+            rgba({ACCENT_RGB}, 1);
+
+        box-shadow:
+            0 0 14px rgba({ACCENT_RGB}, 0.23),
+            0 0 30px rgba({ACCENT_RGB}, 0.08);
+    }}
+}}
 
 
 /* ==========================================================
-   REDUCED MOTION
+   LIGHT THEME ADJUSTMENTS
    ========================================================== */
 
-@media (prefers-reduced-motion: reduce) {
+body {{
+    transition:
+        background-color .25s ease;
+}}
 
-    .hero-container,
-    .hero-icon,
-    .hero-badge,
-    .brand-icon,
-    [data-testid="stChatInput"] > div {
-        animation: none !important;
-    }
-
-}
+[data-testid="stAppViewContainer"],
+section[data-testid="stSidebar"] {{
+    transition:
+        background-color .25s ease,
+        border-color .25s ease;
+}}
 
 
 /* ==========================================================
    RESPONSIVE
    ========================================================== */
 
-@media (max-width: 900px) {
+@media (max-width: 900px) {{
 
-    .hero-container,
-    .notice-box,
+    .hero,
+    .quick-label,
+    .quick-row,
     .disclaimer-box,
     [data-testid="stFileUploader"],
-    [data-testid="stChatMessage"],
-    [data-testid="stChatInput"] {
+    [data-testid="stChatMessage"] {{
         width: calc(100vw - 320px) !important;
-        max-width: none !important;
-    }
 
-}
+        max-width: none !important;
+    }}
+
+    .notice-box,
+    [data-testid="stChatInput"] {{
+        width: calc(100vw - 360px) !important;
+
+        max-width: none !important;
+    }}
+}}
+
+
+/* ==========================================================
+   REDUCED MOTION
+   ========================================================== */
+
+@media (prefers-reduced-motion: reduce) {{
+
+    .hero,
+    .hero-icon,
+    .hero-badge,
+    .sidebar-brand-icon,
+    [data-testid="stChatInput"] > div {{
+        animation: none !important;
+    }}
+}}
 
 </style>
 """,
@@ -782,10 +1009,12 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 if not GEMINI_API_KEY or not GROQ_API_KEY:
+
     st.error(
         "❌ API keys missing. Please configure "
         "GEMINI_API_KEY and GROQ_API_KEY."
     )
+
     st.stop()
 
 
@@ -810,44 +1039,49 @@ GROQ_MODEL = "openai/gpt-oss-120b"
 
 with st.sidebar:
 
+    # Keep the native Streamlit collapse arrow untouched.
     st.markdown(
-        """
-        <div class="sidebar-menu">
-            <div class="menu-box">
-                <div class="menu-label">MENU</div>
-                <div class="menu-close">×</div>
-            </div>
-        </div>
-        """,
+        '<div class="sidebar-top"></div>',
         unsafe_allow_html=True
     )
 
+    # -------------------------------------------------------
+    # BRAND
+    # -------------------------------------------------------
+
     st.markdown(
-        """
-        <div class="brand-wrap">
+        f"""
+        <div class="sidebar-brand">
 
-            <div class="brand-icon">
+            <div class="sidebar-brand-icon">
 
-                <svg width="30" height="30"
-                     viewBox="0 0 50 50"
-                     fill="none"
-                     xmlns="http://www.w3.org/2000/svg">
+                <svg
+                    width="30"
+                    height="30"
+                    viewBox="0 0 50 50"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
 
                     <path
-                        d="M16 25V14
-                           C16 9.6 19.6 6 24 6
-                           C28.4 6 32 9.6 32 14V29
-                           C32 35.1 36.9 40 43 40"
-                        stroke="#a87aff"
+                        d="
+                            M16 25V14
+                            C16 9.6 19.6 6 24 6
+                            C28.4 6 32 9.6 32 14V29
+                            C32 35.1 36.9 40 43 40
+                        "
+                        stroke="{ACCENT_SOFT}"
                         stroke-width="2.8"
                         stroke-linecap="round"
                     />
 
                     <path
-                        d="M16 20
-                           C12.1 20 9 23.1 9 27
-                           C9 30.9 12.1 34 16 34"
-                        stroke="#ff3d78"
+                        d="
+                            M16 20
+                            C12.1 20 9 23.1 9 27
+                            C9 30.9 12.1 34 16 34
+                        "
+                        stroke="{ACCENT}"
                         stroke-width="2.8"
                         stroke-linecap="round"
                     />
@@ -856,7 +1090,7 @@ with st.sidebar:
                         cx="16"
                         cy="25"
                         r="4"
-                        stroke="#50c7ff"
+                        stroke="#58d0ff"
                         stroke-width="2.2"
                     />
 
@@ -864,7 +1098,7 @@ with st.sidebar:
                         cx="43"
                         cy="40"
                         r="3"
-                        stroke="#ff3d78"
+                        stroke="{ACCENT}"
                         stroke-width="2"
                     />
 
@@ -872,9 +1106,11 @@ with st.sidebar:
 
             </div>
 
-            <div class="brand-title">AI HEALTHCARE</div>
+            <div class="sidebar-brand-title">
+                AI HEALTHCARE
+            </div>
 
-            <div class="brand-caption">
+            <div class="sidebar-brand-subtitle">
                 Smart health information assistant
             </div>
 
@@ -883,7 +1119,14 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sidebar-divider"></div>',
+        unsafe_allow_html=True
+    )
+
+    # -------------------------------------------------------
+    # CHAT HISTORY
+    # -------------------------------------------------------
 
     st.markdown(
         '<div class="sidebar-heading">💬 Chat History</div>',
@@ -897,7 +1140,21 @@ with st.sidebar:
             unsafe_allow_html=True
         )
 
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    else:
+
+        st.caption(
+            f"{len(st.session_state.messages)} message"
+            f"{'' if len(st.session_state.messages) == 1 else 's'}"
+        )
+
+    st.markdown(
+        '<div class="sidebar-divider"></div>',
+        unsafe_allow_html=True
+    )
+
+    # -------------------------------------------------------
+    # ASSISTANT MODE
+    # -------------------------------------------------------
 
     st.session_state.app_mode = st.selectbox(
         "Assistant Mode",
@@ -913,6 +1170,10 @@ with st.sidebar:
         ].index(st.session_state.app_mode)
     )
 
+    # -------------------------------------------------------
+    # RESPONSE STYLE
+    # -------------------------------------------------------
+
     st.session_state.response_style = st.selectbox(
         "Response Style",
         [
@@ -927,41 +1188,70 @@ with st.sidebar:
         ].index(st.session_state.response_style)
     )
 
+    # -------------------------------------------------------
+    # ACCENT COLORS
+    # -------------------------------------------------------
+
     st.session_state.accent = st.selectbox(
         "Accent",
-        [
-            "Rose",
-            "Blue",
-            "Emerald"
-        ],
-        index=[
-            "Rose",
-            "Blue",
-            "Emerald"
-        ].index(st.session_state.accent)
+        list(ACCENTS.keys()),
+        index=list(ACCENTS.keys()).index(
+            st.session_state.accent
+        )
     )
+
+    # -------------------------------------------------------
+    # APPEARANCE
+    # -------------------------------------------------------
 
     st.markdown(
         '<div class="appearance-title">🎨 Appearance</div>',
         unsafe_allow_html=True
     )
 
-    appearance_col_1, appearance_col_2 = st.columns(2)
+    theme_col1, theme_col2 = st.columns(2)
 
-    with appearance_col_1:
-        st.button("☀️ Light", use_container_width=True)
+    with theme_col1:
 
-    with appearance_col_2:
-        st.button("🌙 Dark", use_container_width=True)
+        if st.button(
+            "☀️ Light",
+            use_container_width=True
+        ):
+
+            if st.session_state.theme != "Light":
+
+                st.session_state.theme = "Light"
+                st.rerun()
+
+    with theme_col2:
+
+        if st.button(
+            "🌙 Dark",
+            use_container_width=True
+        ):
+
+            if st.session_state.theme != "Dark":
+
+                st.session_state.theme = "Dark"
+                st.rerun()
 
     st.markdown(
-        '<div class="appearance-status">Active theme: Dark</div>',
+        f'<div class="appearance-status">'
+        f'Active theme: {st.session_state.theme}'
+        f'</div>',
         unsafe_allow_html=True
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sidebar-divider"></div>',
+        unsafe_allow_html=True
+    )
+
+    # -------------------------------------------------------
+    # CLEAR
+    # -------------------------------------------------------
 
     if st.button(
         "🗑️ Clear Conversation",
@@ -977,31 +1267,38 @@ with st.sidebar:
 # ===========================================================
 
 st.markdown(
-    """
-    <div class="hero-container">
+    f"""
+    <div class="hero">
 
         <div class="hero-icon">
 
-            <svg width="33" height="33"
-                 viewBox="0 0 50 50"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg">
+            <svg
+                width="33"
+                height="33"
+                viewBox="0 0 50 50"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
 
                 <path
-                    d="M16 25V14
-                       C16 9.6 19.6 6 24 6
-                       C28.4 6 32 9.6 32 14V29
-                       C32 35.1 36.9 40 43 40"
-                    stroke="#ae7aff"
+                    d="
+                        M16 25V14
+                        C16 9.6 19.6 6 24 6
+                        C28.4 6 32 9.6 32 14V29
+                        C32 35.1 36.9 40 43 40
+                    "
+                    stroke="{ACCENT_SOFT}"
                     stroke-width="2.8"
                     stroke-linecap="round"
                 />
 
                 <path
-                    d="M16 20
-                       C12.1 20 9 23.1 9 27
-                       C9 30.9 12.1 34 16 34"
-                    stroke="#ff3d78"
+                    d="
+                        M16 20
+                        C12.1 20 9 23.1 9 27
+                        C9 30.9 12.1 34 16 34
+                    "
+                    stroke="{ACCENT}"
                     stroke-width="2.8"
                     stroke-linecap="round"
                 />
@@ -1010,7 +1307,7 @@ st.markdown(
                     cx="16"
                     cy="25"
                     r="4"
-                    stroke="#54ccff"
+                    stroke="#58d0ff"
                     stroke-width="2.2"
                 />
 
@@ -1018,7 +1315,7 @@ st.markdown(
                     cx="43"
                     cy="40"
                     r="3"
-                    stroke="#ff3d78"
+                    stroke="{ACCENT}"
                     stroke-width="2"
                 />
 
@@ -1027,7 +1324,8 @@ st.markdown(
         </div>
 
         <div class="hero-title">
-            AI Healthcare Assistant
+            AI Healthcare<br>
+            Assistant
         </div>
 
         <div class="hero-description">
@@ -1050,6 +1348,11 @@ st.markdown(
 
 st.markdown(
     '<div class="quick-label">Try a quick question</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="quick-row">',
     unsafe_allow_html=True
 )
 
@@ -1087,7 +1390,6 @@ with q1:
 
         st.rerun()
 
-
 with q2:
 
     if st.button(
@@ -1120,9 +1422,14 @@ with q2:
 
         st.rerun()
 
+st.markdown(
+    '</div>',
+    unsafe_allow_html=True
+)
+
 
 # ===========================================================
-# INFORMATION BOXES
+# DATA NOTICE
 # ===========================================================
 
 st.markdown(
@@ -1135,6 +1442,11 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+
+# ===========================================================
+# DISCLAIMER
+# ===========================================================
 
 st.markdown(
     """
@@ -1200,6 +1512,7 @@ if user_input:
     )
 
     with st.chat_message("user"):
+
         st.markdown(user_input)
 
     try:
@@ -1245,5 +1558,8 @@ if user_input:
 
     except Exception as e:
 
-        st.error(f"An error occurred: {e}")
+        st.error(
+            f"An error occurred: {e}"
+        )
+
 
