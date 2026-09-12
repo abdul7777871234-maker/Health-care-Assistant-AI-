@@ -820,7 +820,7 @@ div[role="option"]:hover {
 [data-testid="stChatInput"] {
     max-width: 780px !important;
     margin: 0 auto !important;
-    
+
     background:
         var(--input) !important;
 
@@ -1375,7 +1375,7 @@ with st.sidebar:
     # --------------------------------------------------------
 
     st.markdown("### 💬 Chat History")
-    
+
     if not st.session_state.messages:
         st.caption("No previous messages yet.")
     else:
