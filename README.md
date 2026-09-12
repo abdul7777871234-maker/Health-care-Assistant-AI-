@@ -2,7 +2,7 @@
 
 AI Medical Report Analyzer powered by:
 
-- Gemini 3.8 Flash → 3.7 → 3.6 → 3.5 automatic fallback
+- Gemini Flash
 - Groq OpenAI GPT-OSS 120B
 - Streamlit
 - Google Colab
