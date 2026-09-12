@@ -40,3 +40,5 @@ patient_data/
 # OS
 .DS_Store
 Thumbs.db
+
+*.pyc

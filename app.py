@@ -23,9 +23,7 @@ MAX_USER_QUESTION_CHARS = 3000
 
 
 # ============================================================
-# SIDEBAR OPEN/CLOSE STATE
-# Must be resolved before st.set_page_config, since the sidebar
-# state is set at page-config time.
+# SIDEBAR STATE
 # ============================================================
 
 if "sidebar_open" not in st.session_state:
@@ -41,7 +39,9 @@ st.set_page_config(
     page_icon="🩺",
     layout="wide",
     initial_sidebar_state=(
-        "expanded" if st.session_state.sidebar_open else "collapsed"
+        "expanded"
+        if st.session_state.sidebar_open
+        else "collapsed"
     ),
 )
 
@@ -62,6 +62,7 @@ DEFAULTS = {
 }
 
 for key, value in DEFAULTS.items():
+
     if key not in st.session_state:
         st.session_state[key] = value
 
@@ -71,42 +72,49 @@ for key, value in DEFAULTS.items():
 # ============================================================
 
 ACCENTS = {
+
     "Rose": {
         "primary": "#FB4570",
         "secondary": "#FF8FA3",
         "soft": "rgba(251,69,112,.14)",
         "glow": "rgba(251,69,112,.30)",
     },
+
     "Blue": {
         "primary": "#2E7CF6",
         "secondary": "#6FA8FF",
         "soft": "rgba(46,124,246,.14)",
         "glow": "rgba(46,124,246,.30)",
     },
+
     "Emerald": {
         "primary": "#0BC98A",
         "secondary": "#4EE6AE",
         "soft": "rgba(11,201,138,.14)",
         "glow": "rgba(11,201,138,.30)",
     },
+
     "Cyan": {
         "primary": "#00C2D8",
         "secondary": "#5CE8F4",
         "soft": "rgba(0,194,216,.14)",
         "glow": "rgba(0,194,216,.30)",
     },
+
     "Violet": {
         "primary": "#8B5CF6",
         "secondary": "#B79CFF",
         "soft": "rgba(139,92,246,.14)",
         "glow": "rgba(139,92,246,.30)",
     },
+
     "Amber": {
         "primary": "#F5A524",
         "secondary": "#FFC864",
         "soft": "rgba(245,165,36,.14)",
         "glow": "rgba(245,165,36,.30)",
     },
+
     "Sunset": {
         "primary": "#FF5A5F",
         "secondary": "#FFB86B",
@@ -153,7 +161,9 @@ else:
     bottom_bg = "rgba(8,11,18,1)"
 
 color_scheme_value = (
-    "light" if st.session_state.theme_mode == "Light" else "dark"
+    "light"
+    if st.session_state.theme_mode == "Light"
+    else "dark"
 )
 
 
@@ -163,10 +173,6 @@ color_scheme_value = (
 
 css = """
 <style>
-
-/* ============================================================
-   ROOT VARIABLES
-   ============================================================ */
 
 :root {
     color-scheme: __COLOR_SCHEME__;
@@ -186,7 +192,6 @@ css = """
     --assistant: __ASSISTANT_BG__;
     --sidebar: __SIDEBAR_BG__;
     --select-bg: __SELECT_BG__;
-    --select-text: __TEXT_COLOR__;
     --select-text: __SELECT_TEXT__;
     --bottom-bg: __BOTTOM_BG__;
 }
@@ -208,7 +213,8 @@ footer {
     visibility: hidden;
 }
 
-html, body {
+html,
+body {
     background: var(--bg) !important;
     min-height: 100vh !important;
 }
@@ -241,16 +247,13 @@ html, body {
         var(--bg) !important;
 
     background-attachment: fixed !important;
-
     color: var(--text) !important;
 }
 
 .block-container {
     max-width: 1080px !important;
-
     padding-top: 1rem !important;
     padding-bottom: 7rem !important;
-
     color: var(--text) !important;
 }
 
@@ -278,61 +281,41 @@ html, body {
    ============================================================ */
 
 section[data-testid="stSidebar"] {
-    background:
-        var(--sidebar) !important;
-
-    border-right:
-        1px solid var(--border) !important;
+    background: var(--sidebar) !important;
+    border-right: 1px solid var(--border) !important;
 }
 
 section[data-testid="stSidebar"] > div {
-    background:
-        var(--sidebar) !important;
+    background: var(--sidebar) !important;
 }
 
 section[data-testid="stSidebar"] * {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 }
 
-/* Sidebar markdown headings */
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3,
 section[data-testid="stSidebar"] h4 {
-    color:
-        var(--text) !important;
-
-    opacity:
-        1 !important;
+    color: var(--text) !important;
+    opacity: 1 !important;
 }
 
-/* Sidebar labels */
 section[data-testid="stSidebar"] label {
-    color:
-        var(--text) !important;
-
-    opacity:
-        1 !important;
+    color: var(--text) !important;
+    opacity: 1 !important;
 }
 
-/* Sidebar caption */
 section[data-testid="stSidebar"]
 [data-testid="stCaptionContainer"] {
-    color:
-        var(--muted) !important;
+    color: var(--muted) !important;
 }
 
 
 /* ============================================================
-   SIDEBAR TOGGLE BUTTON
-   Real st.button, styled as a fixed pill with a label above
-   the icon. Always on top, whether the sidebar is open or
-   collapsed, since it lives in the main area, not inside the
-   sidebar itself.
+   SIDEBAR TOGGLE
    ============================================================ */
 
-/* Hide Streamlit's own default collapse arrow — we supply ours */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarContent"] button[kind="header"],
 [data-testid="stSidebarCollapseButton"] {
@@ -351,6 +334,7 @@ section[data-testid="stSidebar"]
     min-height: 0 !important;
     height: auto !important;
     width: 44px !important;
+
     padding: 9px 0 7px 0 !important;
 
     display: flex !important;
@@ -359,9 +343,13 @@ section[data-testid="stSidebar"]
     gap: 3px !important;
 
     border-radius: 14px !important;
+
     background: var(--card) !important;
+
     border: 1px solid var(--accent) !important;
-    box-shadow: 0 8px 22px rgba(0,0,0,.16) !important;
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.16) !important;
 }
 
 .st-key-sidebar_toggle_btn button p {
@@ -372,10 +360,13 @@ section[data-testid="stSidebar"]
 
 .st-key-sidebar_toggle_btn button::before {
     content: "MENU";
+
     font-size: 8px;
     font-weight: 800;
     letter-spacing: .6px;
+
     color: var(--muted);
+
     order: -1;
 }
 
@@ -386,17 +377,14 @@ section[data-testid="stSidebar"]
 
 .sidebar-brand {
     text-align: center;
-
-    padding:
-        8px 5px 15px 5px;
+    padding: 8px 5px 15px 5px;
 }
 
 .brand-icon {
     width: 56px;
     height: 56px;
 
-    margin:
-        0 auto 10px auto;
+    margin: 0 auto 10px auto;
 
     display: flex;
     align-items: center;
@@ -404,11 +392,9 @@ section[data-testid="stSidebar"]
 
     border-radius: 18px;
 
-    background:
-        var(--accent-soft);
+    background: var(--accent-soft);
 
-    border:
-        1px solid var(--accent);
+    border: 1px solid var(--accent);
 
     box-shadow:
         0 10px 30px var(--accent-glow);
@@ -417,8 +403,7 @@ section[data-testid="stSidebar"]
 }
 
 .brand-title {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 
     font-size: 18px;
     font-weight: 800;
@@ -427,13 +412,11 @@ section[data-testid="stSidebar"]
 }
 
 .brand-subtitle {
-    color:
-        var(--muted) !important;
+    color: var(--muted) !important;
 
     font-size: 11px;
 
-    margin-top:
-        4px;
+    margin-top: 4px;
 }
 
 
@@ -444,42 +427,32 @@ section[data-testid="stSidebar"]
 .hero {
     text-align: center;
 
-    padding:
-        26px 20px 22px 20px;
+    padding: 26px 20px 22px 20px;
 
-    margin:
-        0 0 12px 0;
+    margin: 0 0 12px 0;
 
-    border:
-        1px solid var(--accent);
+    border: 1px solid var(--accent);
 
-    border-radius:
-        26px;
+    border-radius: 26px;
 
-    background:
-        var(--card);
+    background: var(--card);
 
-    backdrop-filter:
-        blur(24px);
-
-    -webkit-backdrop-filter:
-        blur(24px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
 
     box-shadow:
         0 20px 60px rgba(0,0,0,.12),
         0 0 0 1px var(--accent-soft),
         0 0 40px var(--accent-glow);
 
-    animation:
-        fadeUp .30s ease;
+    animation: fadeUp .30s ease;
 }
 
 .hero-icon {
     width: 62px;
     height: 62px;
 
-    margin:
-        0 auto 12px auto;
+    margin: 0 auto 12px auto;
 
     display: flex;
     align-items: center;
@@ -487,39 +460,30 @@ section[data-testid="stSidebar"]
 
     border-radius: 20px;
 
-    background:
-        var(--accent-soft);
+    background: var(--accent-soft);
 
-    border:
-        1px solid var(--accent);
+    border: 1px solid var(--accent);
 
-    box-shadow:
-        0 0 25px var(--accent-glow);
+    box-shadow: 0 0 25px var(--accent-glow);
 
     font-size: 31px;
 
     animation:
-        heroPulse 2.6s ease-in-out infinite;
+        heroPulse 2.6s ease-in-out infinite,
+        neonBreath 4.8s ease-in-out infinite;
 }
 
 .hero-title {
-    margin:
-        0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 
-    padding:
-        0 !important;
+    font-size: clamp(36px, 5.5vw, 58px);
 
-    font-size:
-        clamp(36px, 5.5vw, 58px);
+    line-height: .98;
 
-    line-height:
-        .98;
+    font-weight: 850;
 
-    font-weight:
-        850;
-
-    letter-spacing:
-        -2.5px;
+    letter-spacing: -2.5px;
 
     background:
         linear-gradient(
@@ -529,66 +493,43 @@ section[data-testid="stSidebar"]
             var(--accent-secondary)
         );
 
-    background-clip:
-        text;
+    background-clip: text;
+    -webkit-background-clip: text;
 
-    -webkit-background-clip:
-        text;
-
-    color:
-        transparent;
-
-    -webkit-text-fill-color:
-        transparent;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
 }
 
 .hero-subtitle {
-    max-width:
-        680px;
+    max-width: 680px;
 
-    margin:
-        12px auto 0 auto;
+    margin: 12px auto 0 auto;
 
-    background:
-        transparent !important;
+    background: transparent !important;
 
-    color:
-        var(--subtext) !important;
+    color: var(--subtext) !important;
 
-    font-size:
-        14px;
-
-    line-height:
-        1.5;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .mode-badge {
-    display:
-        inline-block;
+    display: inline-block;
 
-    margin-top:
-        13px;
+    margin-top: 13px;
 
-    padding:
-        6px 12px;
+    padding: 6px 12px;
 
-    border-radius:
-        999px;
+    border-radius: 999px;
 
-    background:
-        var(--accent-soft);
+    background: var(--accent-soft);
 
-    border:
-        1px solid var(--accent);
+    border: 1px solid var(--accent);
 
-    color:
-        var(--accent) !important;
+    color: var(--accent) !important;
 
-    font-size:
-        11px;
-
-    font-weight:
-        700;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 
@@ -597,42 +538,31 @@ section[data-testid="stSidebar"]
    ============================================================ */
 
 .stButton > button {
-    min-height:
-        40px !important;
+    min-height: 40px !important;
 
-    border-radius:
-        12px !important;
+    border-radius: 12px !important;
 
-    border:
-        1px solid var(--border) !important;
+    border: 1px solid var(--border) !important;
 
-    background:
-        var(--card) !important;
+    background: var(--card) !important;
 
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 
-    font-weight:
-        600 !important;
+    font-weight: 600 !important;
 
-    transition:
-        all .16s ease !important;
+    transition: all .16s ease !important;
 }
 
 .stButton > button p {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 }
 
 .stButton > button:hover {
-    border-color:
-        var(--accent) !important;
+    border-color: var(--accent) !important;
 
-    color:
-        var(--accent) !important;
+    color: var(--accent) !important;
 
-    transform:
-        translateY(-1px) !important;
+    transform: translateY(-1px) !important;
 
     box-shadow:
         0 7px 22px var(--accent-glow) !important;
@@ -644,8 +574,7 @@ section[data-testid="stSidebar"]
    ============================================================ */
 
 div[data-baseweb="select"] {
-    color:
-        var(--select-text) !important;
+    color: var(--select-text) !important;
 }
 
 [data-testid="stSelectbox"] > div,
@@ -653,50 +582,41 @@ div[data-baseweb="select"],
 div[data-baseweb="select"] > div,
 div[data-baseweb="select"] > div > div,
 div[data-baseweb="select"] div[data-baseweb="base-input"] {
-    background:
-        var(--select-bg) !important;
-
-    color:
-        var(--select-text) !important;
-
-    border-radius:
-        11px !important;
+    background: var(--select-bg) !important;
+    color: var(--select-text) !important;
+    border-radius: 11px !important;
 }
 
 div[data-baseweb="select"] > div {
-    border:
-        1px solid var(--border) !important;
+    border: 1px solid var(--border) !important;
 }
 
 div[data-baseweb="select"] span,
 div[data-baseweb="select"] div,
 div[data-baseweb="select"] input {
     background: transparent !important;
-    color:
-        var(--select-text) !important;
+    color: var(--select-text) !important;
 }
 
 
-/* Dropdown popup */
-div[role="listbox"] {
-    background:
-        var(--select-bg) !important;
+/* ============================================================
+   DROPDOWN POPUP
+   ============================================================ */
 
-    border:
-        1px solid var(--border) !important;
+div[role="listbox"] {
+    background: var(--select-bg) !important;
+
+    border: 1px solid var(--border) !important;
 }
 
 div[role="option"] {
-    color:
-        var(--select-text) !important;
+    color: var(--select-text) !important;
 
-    background:
-        var(--select-bg) !important;
+    background: var(--select-bg) !important;
 }
 
 div[role="option"]:hover {
-    background:
-        var(--accent-soft) !important;
+    background: var(--accent-soft) !important;
 }
 
 
@@ -705,34 +625,29 @@ div[role="option"]:hover {
    ============================================================ */
 
 [data-testid="stChatMessage"] {
-    border:
-        1px solid var(--border) !important;
+    border: 1px solid var(--border) !important;
 
-    border-radius:
-        18px !important;
+    border-radius: 18px !important;
 
-    margin-bottom:
-        10px !important;
+    margin-bottom: 10px !important;
 
-    background:
-        var(--assistant) !important;
+    background: var(--assistant) !important;
 
-    padding:
-        8px 12px !important;
+    padding: 8px 12px !important;
 
     max-width: 85%;
 }
 
-/* User messages: accent-tinted, right-aligned */
 [data-testid="stChatMessage"]:has(
     [data-testid="stChatMessageAvatarUser"]
 ) {
     margin-left: auto !important;
+
     background: var(--accent-soft) !important;
+
     border-color: var(--accent) !important;
 }
 
-/* Assistant messages: neutral card, left-aligned */
 [data-testid="stChatMessage"]:has(
     [data-testid="stChatMessageAvatarAssistant"]
 ) {
@@ -740,165 +655,276 @@ div[role="option"]:hover {
 }
 
 [data-testid="stChatMessageContent"] {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 }
 
 [data-testid="stChatMessageContent"] p {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 
-    margin-top:
-        .15rem !important;
+    margin-top: .15rem !important;
+    margin-bottom: .38rem !important;
 
-    margin-bottom:
-        .38rem !important;
-
-    line-height:
-        1.52 !important;
+    line-height: 1.52 !important;
 }
 
 [data-testid="stChatMessageContent"] h1,
 [data-testid="stChatMessageContent"] h2,
 [data-testid="stChatMessageContent"] h3,
 [data-testid="stChatMessageContent"] h4 {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 
-    margin-top:
-        .55rem !important;
-
-    margin-bottom:
-        .3rem !important;
+    margin-top: .55rem !important;
+    margin-bottom: .3rem !important;
 }
 
 [data-testid="stChatMessageContent"] ul,
 [data-testid="stChatMessageContent"] ol {
-    margin-top:
-        .2rem !important;
-
-    margin-bottom:
-        .45rem !important;
+    margin-top: .2rem !important;
+    margin-bottom: .45rem !important;
 }
 
 
 /* ============================================================
-   CHAT INPUT — REDUCED WIDTH & FIXED BACKGROUND
+   CHAT INPUT
    ============================================================ */
 
 [data-testid="stBottom"] {
-    background:
-        var(--bottom-bg) !important;
+    background: var(--bottom-bg) !important;
+    background-color: var(--bottom-bg) !important;
 
-    background-color:
-        var(--bottom-bg) !important;
-
-    border:
-        none !important;
-
-    box-shadow:
-        none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 [data-testid="stBottomBlockContainer"] {
-    background:
-        var(--bottom-bg) !important;
+    background: var(--bottom-bg) !important;
+    background-color: var(--bottom-bg) !important;
 
-    background-color:
-        var(--bottom-bg) !important;
+    border: none !important;
+    box-shadow: none !important;
 
-    border:
-        none !important;
-
-    box-shadow:
-        none !important;
-
-    padding:
-        8px 0 14px 0 !important;
+    padding: 8px 0 14px 0 !important;
 }
 
 [data-testid="stChatInput"] {
     max-width: 780px !important;
+
     margin: 0 auto !important;
 
-    background:
-        var(--input) !important;
+    background: var(--input) !important;
+    background-color: var(--input) !important;
 
-    border:
-        1px solid var(--accent) !important;
+    border: 1px solid var(--accent) !important;
 
-    border-radius:
-        18px !important;
+    border-radius: 18px !important;
 
     box-shadow:
         0 0 0 1px var(--accent-soft),
         0 10px 35px var(--accent-glow) !important;
 
-    overflow:
-        hidden !important;
+    overflow: hidden !important;
 }
 
-[data-testid="stChatInput"] > div {
-    background:
-        var(--input) !important;
+[data-testid="stChatInput"] > div,
+[data-testid="stChatInput"] form,
+[data-testid="stChatInput"] [data-baseweb="base-input"],
+[data-testid="stChatInput"] [data-baseweb="textarea"] {
+    background: var(--input) !important;
+    background-color: var(--input) !important;
 
-    border:
-        none !important;
+    border: none !important;
 }
 
 [data-testid="stChatInput"] textarea {
-    background:
-        transparent !important;
+    background: var(--input) !important;
+    background-color: var(--input) !important;
 
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 
-    caret-color:
-        var(--accent) !important;
+    -webkit-text-fill-color: var(--text) !important;
+
+    caret-color: var(--accent) !important;
 }
 
 [data-testid="stChatInput"] textarea::placeholder {
-    color:
-        var(--muted) !important;
+    color: var(--muted) !important;
 
-    opacity:
-        1 !important;
+    -webkit-text-fill-color: var(--muted) !important;
+
+    opacity: 1 !important;
 }
 
-
-/* Chat input toolbar */
 [data-testid="stChatInput"] button {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 
-    background:
-        transparent !important;
+    background: transparent !important;
 }
 
 [data-testid="stChatInput"] button:hover {
-    color:
-        var(--accent) !important;
-    background:
-        var(--accent-soft) !important;
+    color: var(--accent) !important;
+
+    background: var(--accent-soft) !important;
 }
 
 
 /* ============================================================
-   QUICK ACTIONS
+   DARK/LIGHT INPUT SURFACE FIX
+   Keeps every input surface on the active theme.
+   ============================================================ */
+
+[data-testid="stChatInput"],
+[data-testid="stChatInput"] > div,
+[data-testid="stChatInput"] form,
+[data-testid="stChatInput"] [data-baseweb="base-input"],
+[data-testid="stChatInput"] [data-baseweb="textarea"],
+[data-testid="stChatInput"] textarea,
+[data-baseweb="input"],
+[data-baseweb="textarea"],
+[data-baseweb="input"] > div,
+[data-baseweb="textarea"] > div,
+[data-baseweb="base-input"] {
+    background-color: var(--input) !important;
+    background: var(--input) !important;
+
+    color: var(--text) !important;
+
+    -webkit-text-fill-color: var(--text) !important;
+
+    border-color: var(--border) !important;
+}
+
+[data-testid="stChatInput"] textarea {
+    background-color: var(--input) !important;
+    background: var(--input) !important;
+
+    color: var(--text) !important;
+
+    -webkit-text-fill-color: var(--text) !important;
+
+    caret-color: var(--accent) !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder {
+    color: var(--muted) !important;
+
+    -webkit-text-fill-color: var(--muted) !important;
+
+    opacity: 1 !important;
+}
+
+
+/* ============================================================
+   SELECTBOX — HARD DARK/LIGHT SURFACE FIX
+   ============================================================ */
+
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"],
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] > div,
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] [data-baseweb="select"],
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] [data-baseweb="select"] > div,
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] [data-baseweb="base-input"],
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] [data-baseweb="input"],
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] [data-baseweb="input"] > div {
+    background: var(--select-bg) !important;
+
+    background-color: var(--select-bg) !important;
+
+    color: var(--select-text) !important;
+
+    border-color: var(--border) !important;
+
+    box-shadow: none !important;
+}
+
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] * {
+    color: var(--select-text) !important;
+
+    -webkit-text-fill-color:
+        var(--select-text) !important;
+}
+
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"]
+[data-baseweb="select"] svg,
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"] svg {
+    color: var(--select-text) !important;
+
+    fill: var(--select-text) !important;
+
+    stroke: var(--select-text) !important;
+}
+
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"]
+[role="combobox"],
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"]
+[role="combobox"] > div,
+section[data-testid="stSidebar"]
+[data-testid="stSelectbox"]
+[aria-haspopup="listbox"] {
+    background: var(--select-bg) !important;
+
+    background-color: var(--select-bg) !important;
+
+    color: var(--select-text) !important;
+}
+
+
+/* ============================================================
+   OPEN SELECT DROPDOWN
+   ============================================================ */
+
+div[data-baseweb="popover"],
+div[data-baseweb="menu"],
+ul[role="listbox"],
+li[role="option"],
+li[role="option"] > div {
+    background: var(--select-bg) !important;
+
+    background-color: var(--select-bg) !important;
+
+    color: var(--select-text) !important;
+}
+
+div[data-baseweb="popover"] *,
+div[data-baseweb="menu"] *,
+ul[role="listbox"] *,
+li[role="option"] * {
+    color: var(--select-text) !important;
+
+    -webkit-text-fill-color:
+        var(--select-text) !important;
+}
+
+li[role="option"]:hover,
+li[role="option"][aria-selected="true"] {
+    background: var(--accent-soft) !important;
+
+    background-color: var(--accent-soft) !important;
+}
+
+
+/* ============================================================
+   QUICK QUESTIONS
    ============================================================ */
 
 .quick-title {
-    text-align:
-        center;
+    text-align: center;
 
-    color:
-        var(--muted) !important;
+    color: var(--muted) !important;
 
-    font-size:
-        12px;
+    font-size: 12px;
 
-    margin:
-        6px 0 6px 0;
+    margin: 6px 0 6px 0;
 }
 
 
@@ -907,29 +933,21 @@ div[role="option"]:hover {
    ============================================================ */
 
 .report-status {
-    margin:
-        6px 0 10px 0;
+    margin: 6px 0 10px 0;
 
-    padding:
-        9px 12px;
+    padding: 9px 12px;
 
-    border-radius:
-        12px;
+    border-radius: 12px;
 
-    background:
-        var(--accent-soft);
+    background: var(--accent-soft);
 
-    border:
-        1px solid var(--accent);
+    border: 1px solid var(--accent);
 
-    color:
-        var(--accent) !important;
+    color: var(--accent) !important;
 
-    font-size:
-        12px;
+    font-size: 12px;
 
-    font-weight:
-        600;
+    font-weight: 600;
 }
 
 
@@ -938,34 +956,25 @@ div[role="option"]:hover {
    ============================================================ */
 
 .disclaimer {
-    margin:
-        14px 0 0 0;
+    margin: 14px 0 0 0;
 
-    padding:
-        10px 13px;
+    padding: 10px 13px;
 
-    border-radius:
-        13px;
+    border-radius: 13px;
 
-    background:
-        rgba(245,158,11,.07);
+    background: rgba(245,158,11,.07);
 
-    border:
-        1px solid rgba(245,158,11,.22);
+    border: 1px solid rgba(245,158,11,.22);
 
-    color:
-        var(--muted) !important;
+    color: var(--muted) !important;
 
-    font-size:
-        11px;
+    font-size: 11px;
 
-    line-height:
-        1.5;
+    line-height: 1.5;
 }
 
 .disclaimer b {
-    color:
-        var(--text) !important;
+    color: var(--text) !important;
 }
 
 
@@ -975,31 +984,24 @@ div[role="option"]:hover {
 
 .ephemeral-note {
     max-width: 780px !important;
+
     margin: 10px auto 8px auto !important;
 
-    padding:
-        8px 12px;
+    padding: 8px 12px;
 
-    border-radius:
-        12px;
+    border-radius: 12px;
 
-    background:
-        var(--accent-soft);
+    background: var(--accent-soft);
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 
-    color:
-        var(--muted) !important;
+    color: var(--muted) !important;
 
-    font-size:
-        11px;
+    font-size: 11px;
 
-    line-height:
-        1.5;
+    line-height: 1.5;
 
-    text-align:
-        center;
+    text-align: center;
 }
 
 
@@ -1008,16 +1010,14 @@ div[role="option"]:hover {
    ============================================================ */
 
 hr {
-    border-color:
-        var(--border) !important;
+    border-color: var(--border) !important;
 
-    margin:
-        10px 0 !important;
+    margin: 10px 0 !important;
 }
 
 
 /* ============================================================
-   ANIMATION — SLOW NEON BREATHING
+   ANIMATIONS
    ============================================================ */
 
 @keyframes fadeUp {
@@ -1034,8 +1034,10 @@ hr {
 }
 
 @keyframes neonBreath {
+
     0%, 100% {
         filter: brightness(1);
+
         box-shadow:
             0 0 0 1px var(--accent-soft),
             0 0 18px var(--accent-glow),
@@ -1044,6 +1046,7 @@ hr {
 
     50% {
         filter: brightness(1.08);
+
         box-shadow:
             0 0 0 1px var(--accent-soft),
             0 0 30px var(--accent-glow),
@@ -1052,6 +1055,7 @@ hr {
 }
 
 @keyframes neonBorderBreath {
+
     0%, 100% {
         box-shadow:
             0 0 0 1px var(--accent-soft),
@@ -1069,44 +1073,42 @@ hr {
 @keyframes heroPulse {
 
     0%, 100% {
-        box-shadow: 0 0 25px var(--accent-glow);
+        box-shadow:
+            0 0 25px var(--accent-glow);
+
         transform: scale(1);
     }
 
     50% {
-        box-shadow: 0 0 40px var(--accent-glow);
+        box-shadow:
+            0 0 40px var(--accent-glow);
+
         transform: scale(1.04);
     }
 }
 
-/* Slow breathing glow on all intentional neon surfaces. */
 .hero,
 .brand-icon,
-.hero-icon,
 .mode-badge,
 .report-status,
 [data-testid="stChatInput"] {
-    animation: neonBorderBreath 4.8s ease-in-out infinite;
-}
-
-/* Keep the hero icon's existing subtle pulse while adding the glow. */
-.hero-icon {
     animation:
-        heroPulse 2.6s ease-in-out infinite,
-        neonBreath 4.8s ease-in-out infinite;
+        neonBorderBreath 4.8s ease-in-out infinite;
 }
 
-/* Interactive neon controls breathe slowly without changing layout. */
 .stButton > button:hover,
 .st-key-sidebar_toggle_btn button {
-    animation: neonBreath 4.8s ease-in-out infinite;
+    animation:
+        neonBreath 4.8s ease-in-out infinite;
 }
 
 
 /* ============================================================
-   ACCESSIBILITY — RESPECT REDUCED MOTION
+   ACCESSIBILITY
    ============================================================ */
+
 @media (prefers-reduced-motion: reduce) {
+
     .hero,
     .brand-icon,
     .hero-icon,
@@ -1115,6 +1117,7 @@ hr {
     [data-testid="stChatInput"],
     .stButton > button:hover,
     .st-key-sidebar_toggle_btn button {
+
         animation: none !important;
     }
 }
@@ -1127,187 +1130,148 @@ hr {
 @media (max-width: 768px) {
 
     .block-container {
-        padding-left:
-            10px !important;
+        padding-left: 10px !important;
 
-        padding-right:
-            10px !important;
+        padding-right: 10px !important;
 
-        padding-bottom:
-            6.5rem !important;
+        padding-bottom: 6.5rem !important;
     }
 
     .hero {
-        padding:
-            22px 14px 19px 14px;
+        padding: 22px 14px 19px 14px;
 
-        border-radius:
-            21px;
+        border-radius: 21px;
     }
 
     .hero-title {
-        font-size:
-            40px;
+        font-size: 40px;
 
-        letter-spacing:
-            -1.8px;
+        letter-spacing: -1.8px;
     }
 
     .hero-subtitle {
-        font-size:
-            13px;
+        font-size: 13px;
     }
 
     [data-testid="stBottomBlockContainer"] {
-        padding:
-            7px 8px 12px 8px !important;
+        padding: 7px 8px 12px 8px !important;
     }
 
     [data-testid="stChatInput"] {
-        border-radius:
-            16px !important;
+        border-radius: 16px !important;
     }
-}
-
-   DARK/LIGHT INPUT SURFACE FIX
-   Keeps every input surface on the active theme.
-   ============================================================ */
-[data-testid="stChatInput"],
-[data-testid="stChatInput"] > div,
-[data-testid="stChatInput"] form,
-[data-testid="stChatInput"] [data-baseweb="base-input"],
-[data-testid="stChatInput"] [data-baseweb="textarea"],
-[data-testid="stChatInput"] textarea,
-[data-baseweb="input"],
-[data-baseweb="textarea"],
-[data-baseweb="input"] > div,
-[data-baseweb="textarea"] > div,
-[data-baseweb="base-input"] {
-    background-color: var(--input) !important;
-    background: var(--input) !important;
-    color: var(--text) !important;
-    -webkit-text-fill-color: var(--text) !important;
-    border-color: var(--border) !important;
-}
-
-[data-testid="stChatInput"] textarea {
-    background-color: var(--input) !important;
-    background: var(--input) !important;
-    color: var(--text) !important;
-    -webkit-text-fill-color: var(--text) !important;
-    caret-color: var(--accent) !important;
-}
-
-[data-testid="stChatInput"] textarea::placeholder {
-    color: var(--muted) !important;
-    -webkit-text-fill-color: var(--muted) !important;
-    opacity: 1 !important;
-}
-
-/* ============================================================
-   SELECTBOX — HARD DARK/LIGHT SURFACE FIX
-   Prevents Streamlit/BaseWeb from reverting the controls to white.
-   ============================================================ */
-section[data-testid="stSidebar"] [data-testid="stSelectbox"],
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] > div,
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"],
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div,
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="base-input"],
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="input"],
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="input"] > div {
-    background: var(--select-bg) !important;
-    background-color: var(--select-bg) !important;
-    color: var(--select-text) !important;
-    border-color: var(--border) !important;
-    box-shadow: none !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] * {
-    color: var(--select-text) !important;
-    -webkit-text-fill-color: var(--select-text) !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] svg,
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] svg {
-    color: var(--select-text) !important;
-    fill: var(--select-text) !important;
-    stroke: var(--select-text) !important;
-}
-
-/* BaseWeb sometimes paints the selected-value wrapper separately. */
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [role="combobox"],
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [role="combobox"] > div,
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] [aria-haspopup="listbox"] {
-    background: var(--select-bg) !important;
-    background-color: var(--select-bg) !important;
-    color: var(--select-text) !important;
-}
-
-/* Open select dropdown / popover. */
-div[data-baseweb="popover"],
-div[data-baseweb="menu"],
-ul[role="listbox"],
-li[role="option"],
-li[role="option"] > div {
-    background: var(--select-bg) !important;
-    background-color: var(--select-bg) !important;
-    color: var(--select-text) !important;
-}
-
-div[data-baseweb="popover"] *,
-div[data-baseweb="menu"] *,
-ul[role="listbox"] *,
-li[role="option"] * {
-    color: var(--select-text) !important;
-    -webkit-text-fill-color: var(--select-text) !important;
-}
-
-li[role="option"]:hover,
-li[role="option"][aria-selected="true"] {
-    background: var(--accent-soft) !important;
-    background-color: var(--accent-soft) !important;
 }
 
 </style>
 """
 
-# Theme placeholders are substituted after the CSS string is created.
-# This avoids Python f-string parsing of CSS braces.
+
+# ============================================================
+# CSS PLACEHOLDER REPLACEMENT
+# ============================================================
+
 css = (
     css
-    .replace("__COLOR_SCHEME__", color_scheme_value)
-    .replace("__ACCENT_PRIMARY__", accent["primary"])
-    .replace("__ACCENT_SECONDARY__", accent["secondary"])
-    .replace("__ACCENT_SOFT__", accent["soft"])
-    .replace("__ACCENT_GLOW__", accent["glow"])
-    .replace("__BG_COLOR__", bg_color)
-    .replace("__CARD_BG__", card_bg)
-    .replace("__TEXT_COLOR__", text_color)
-    .replace("__SUB_TEXT__", sub_text)
-    .replace("__MUTED_TEXT__", muted_text)
-    .replace("__BORDER_COLOR__", border_color)
-    .replace("__INPUT_BG__", input_bg)
-    .replace("__ASSISTANT_BG__", assistant_bg)
-    .replace("__SIDEBAR_BG__", sidebar_bg)
-    .replace("__SELECT_BG__", select_bg)
-    .replace("__SELECT_TEXT__", select_text)
-    .replace("__BOTTOM_BG__", bottom_bg)
+    .replace(
+        "__COLOR_SCHEME__",
+        color_scheme_value,
+    )
+    .replace(
+        "__ACCENT_PRIMARY__",
+        accent["primary"],
+    )
+    .replace(
+        "__ACCENT_SECONDARY__",
+        accent["secondary"],
+    )
+    .replace(
+        "__ACCENT_SOFT__",
+        accent["soft"],
+    )
+    .replace(
+        "__ACCENT_GLOW__",
+        accent["glow"],
+    )
+    .replace(
+        "__BG_COLOR__",
+        bg_color,
+    )
+    .replace(
+        "__CARD_BG__",
+        card_bg,
+    )
+    .replace(
+        "__TEXT_COLOR__",
+        text_color,
+    )
+    .replace(
+        "__SUB_TEXT__",
+        sub_text,
+    )
+    .replace(
+        "__MUTED_TEXT__",
+        muted_text,
+    )
+    .replace(
+        "__BORDER_COLOR__",
+        border_color,
+    )
+    .replace(
+        "__INPUT_BG__",
+        input_bg,
+    )
+    .replace(
+        "__ASSISTANT_BG__",
+        assistant_bg,
+    )
+    .replace(
+        "__SIDEBAR_BG__",
+        sidebar_bg,
+    )
+    .replace(
+        "__SELECT_BG__",
+        select_bg,
+    )
+    .replace(
+        "__SELECT_TEXT__",
+        select_text,
+    )
+    .replace(
+        "__BOTTOM_BG__",
+        bottom_bg,
+    )
 )
 
-st.markdown(css, unsafe_allow_html=True)
+
+# ============================================================
+# RENDER CSS
+# ============================================================
+
+st.markdown(
+    css,
+    unsafe_allow_html=True,
+)
 
 
 # ============================================================
-# SIDEBAR TOGGLE BUTTON
-# A real Streamlit button (not CSS/JS trickery), so click
-# open/close is 100% reliable. Streamlit exposes a stable
-# ".st-key-<key>" class on this button's wrapper for styling.
+# SIDEBAR TOGGLE
 # ============================================================
 
-toggle_icon = "✕" if st.session_state.sidebar_open else "☰"
+toggle_icon = (
+    "✕"
+    if st.session_state.sidebar_open
+    else "☰"
+)
 
-if st.button(toggle_icon, key="sidebar_toggle_btn"):
-    st.session_state.sidebar_open = not st.session_state.sidebar_open
+if st.button(
+    toggle_icon,
+    key="sidebar_toggle_btn",
+):
+
+    st.session_state.sidebar_open = (
+        not st.session_state.sidebar_open
+    )
+
     st.rerun()
 
 
@@ -1315,8 +1279,13 @@ if st.button(toggle_icon, key="sidebar_toggle_btn"):
 # API KEYS
 # ============================================================
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GEMINI_API_KEY = os.environ.get(
+    "GEMINI_API_KEY"
+)
+
+GROQ_API_KEY = os.environ.get(
+    "GROQ_API_KEY"
+)
 
 if not GEMINI_API_KEY or not GROQ_API_KEY:
 
@@ -1370,27 +1339,49 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # --------------------------------------------------------
-    # CHAT HISTORY IN SIDEBAR
-    # --------------------------------------------------------
-
     st.markdown("### 💬 Chat History")
 
     if not st.session_state.messages:
-        st.caption("No previous messages yet.")
+
+        st.caption(
+            "No previous messages yet."
+        )
+
     else:
-        history_container = st.container(height=200)
+
+        history_container = st.container(
+            height=200
+        )
+
         with history_container:
-            for idx, msg in enumerate(st.session_state.messages):
-                role_label = "🧑‍💻 You" if msg.get("role") == "user" else "🤖 AI"
-                content_preview = msg.get("content", "")[:50] + "..." if len(msg.get("content", "")) > 50 else msg.get("content", "")
-                st.markdown(f"**{role_label}:** {content_preview}")
+
+            for idx, msg in enumerate(
+                st.session_state.messages
+            ):
+
+                role_label = (
+                    "🧑‍💻 You"
+                    if msg.get("role") == "user"
+                    else "🤖 AI"
+                )
+
+                content = (
+                    msg.get("content", "")
+                    or ""
+                )
+
+                content_preview = (
+                    content[:50] + "..."
+                    if len(content) > 50
+                    else content
+                )
+
+                st.markdown(
+                    f"**{role_label}:** "
+                    f"{content_preview}"
+                )
 
     st.markdown("---")
-
-    # --------------------------------------------------------
-    # ASSISTANT MODE
-    # --------------------------------------------------------
 
     st.markdown("### 🧠 Assistant Mode")
 
@@ -1400,21 +1391,22 @@ with st.sidebar:
         "Nutrition Coach",
     ]
 
-    current_mode = st.session_state.app_mode
+    current_mode = (
+        st.session_state.app_mode
+    )
 
     if current_mode not in mode_options:
+
         current_mode = mode_options[0]
 
     st.session_state.app_mode = st.selectbox(
         "Assistant Mode",
         mode_options,
-        index=mode_options.index(current_mode),
+        index=mode_options.index(
+            current_mode
+        ),
         label_visibility="collapsed",
     )
-
-    # --------------------------------------------------------
-    # RESPONSE STYLE
-    # --------------------------------------------------------
 
     st.markdown("### ✍️ Response Style")
 
@@ -1424,46 +1416,56 @@ with st.sidebar:
         "Detailed Assessment",
     ]
 
-    current_length = st.session_state.resp_length
+    current_length = (
+        st.session_state.resp_length
+    )
 
     if current_length not in length_options:
+
         current_length = "Balanced"
 
     st.session_state.resp_length = st.selectbox(
         "Response Style",
         length_options,
-        index=length_options.index(current_length),
+        index=length_options.index(
+            current_length
+        ),
         label_visibility="collapsed",
     )
 
-    # --------------------------------------------------------
-    # ACCENT
-    # --------------------------------------------------------
-
     st.markdown("### 🎨 Accent")
 
-    accent_options = list(ACCENTS.keys())
+    accent_options = list(
+        ACCENTS.keys()
+    )
 
-    current_accent = st.session_state.accent
+    current_accent = (
+        st.session_state.accent
+    )
 
     if current_accent not in accent_options:
+
         current_accent = "Rose"
 
     selected_accent = st.selectbox(
         "Accent",
         accent_options,
-        index=accent_options.index(current_accent),
+        index=accent_options.index(
+            current_accent
+        ),
         label_visibility="collapsed",
     )
 
-    if selected_accent != st.session_state.accent:
+    if (
+        selected_accent
+        != st.session_state.accent
+    ):
 
-        st.session_state.accent = selected_accent
+        st.session_state.accent = (
+            selected_accent
+        )
+
         st.rerun()
-
-    # --------------------------------------------------------
-    # APPEARANCE
-    # --------------------------------------------------------
 
     st.markdown("### ☀️ Appearance")
 
@@ -1477,8 +1479,15 @@ with st.sidebar:
             key="theme_light",
         ):
 
-            if st.session_state.theme_mode != "Light":
-                st.session_state.theme_mode = "Light"
+            if (
+                st.session_state.theme_mode
+                != "Light"
+            ):
+
+                st.session_state.theme_mode = (
+                    "Light"
+                )
+
                 st.rerun()
 
     with theme_col2:
@@ -1489,17 +1498,21 @@ with st.sidebar:
             key="theme_dark",
         ):
 
-            if st.session_state.theme_mode != "Dark":
-                st.session_state.theme_mode = "Dark"
+            if (
+                st.session_state.theme_mode
+                != "Dark"
+            ):
+
+                st.session_state.theme_mode = (
+                    "Dark"
+                )
+
                 st.rerun()
 
     st.caption(
-        f"Active theme: {st.session_state.theme_mode}"
+        f"Active theme: "
+        f"{st.session_state.theme_mode}"
     )
-
-    # --------------------------------------------------------
-    # ACTIVE REPORT
-    # --------------------------------------------------------
 
     if st.session_state.report_context:
 
@@ -1525,10 +1538,6 @@ with st.sidebar:
 
             st.rerun()
 
-    # --------------------------------------------------------
-    # CLEAR CONVERSATION
-    # --------------------------------------------------------
-
     st.markdown("---")
 
     if st.button(
@@ -1538,8 +1547,11 @@ with st.sidebar:
     ):
 
         st.session_state.messages = []
+
         st.session_state.report_context = ""
+
         st.session_state.report_name = ""
+
         st.session_state.pending_question = ""
 
         st.rerun()
@@ -1550,6 +1562,7 @@ with st.sidebar:
 # ============================================================
 
 MODE_DESCRIPTIONS = {
+
     "AI Medical Analyst":
         "Understand medical reports and health information in simple language.",
 
@@ -1561,12 +1574,27 @@ MODE_DESCRIPTIONS = {
 }
 
 st.markdown(
-    f"""<div class="hero">
-<div class="hero-icon">🩺</div>
-<h1 class="hero-title">AI Healthcare<br>Assistant</h1>
-<div class="hero-subtitle">{MODE_DESCRIPTIONS[st.session_state.app_mode]}</div>
-<div class="mode-badge">{st.session_state.app_mode}</div>
-</div>""",
+    f"""
+    <div class="hero">
+
+        <div class="hero-icon">🩺</div>
+
+        <h1 class="hero-title">
+            AI Healthcare<br>Assistant
+        </h1>
+
+        <div class="hero-subtitle">
+            {MODE_DESCRIPTIONS[
+                st.session_state.app_mode
+            ]}
+        </div>
+
+        <div class="mode-badge">
+            {st.session_state.app_mode}
+        </div>
+
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
@@ -1580,7 +1608,9 @@ def clean_question(text):
     if not text:
         return ""
 
-    return text.strip()[:MAX_USER_QUESTION_CHARS]
+    return text.strip()[
+        :MAX_USER_QUESTION_CHARS
+    ]
 
 
 # ============================================================
@@ -1598,7 +1628,10 @@ def validate_image(uploaded_file):
             "Please attach a medical report image.",
         )
 
-    mime_type = uploaded_file.type or ""
+    mime_type = (
+        uploaded_file.type
+        or ""
+    )
 
     allowed_types = {
         "image/jpeg",
@@ -1615,7 +1648,9 @@ def validate_image(uploaded_file):
             "Only JPG, JPEG, PNG and WEBP images are supported.",
         )
 
-    image_bytes = uploaded_file.getvalue()
+    image_bytes = (
+        uploaded_file.getvalue()
+    )
 
     if not image_bytes:
 
@@ -1626,7 +1661,10 @@ def validate_image(uploaded_file):
             "The uploaded image is empty.",
         )
 
-    size_mb = len(image_bytes) / (1024 * 1024)
+    size_mb = (
+        len(image_bytes)
+        / (1024 * 1024)
+    )
 
     if size_mb > MAX_IMAGE_SIZE_MB:
 
@@ -1634,7 +1672,8 @@ def validate_image(uploaded_file):
             False,
             None,
             None,
-            f"Image is too large. Maximum size is "
+            f"Image is too large. "
+            f"Maximum size is "
             f"{MAX_IMAGE_SIZE_MB} MB.",
         )
 
@@ -1681,6 +1720,7 @@ Analyze ONLY information actually visible in the
 uploaded medical report image.
 
 Do NOT invent:
+
 - values
 - diagnoses
 - symptoms
@@ -1691,6 +1731,7 @@ Do NOT invent:
 - patient details
 
 If text or a value is unreadable, write:
+
 "Unreadable from the uploaded image."
 
 Extract useful information including, when visible:
@@ -1715,6 +1756,7 @@ Rules:
 - Prioritize accuracy.
 
 USER QUESTION:
+
 {user_question or "Please explain this medical report in simple language."}
 """
 
@@ -1723,24 +1765,29 @@ USER QUESTION:
         mime_type=mime_type,
     )
 
-    response = gemini_client.models.generate_content(
+    response = (
+        gemini_client.models.generate_content(
 
-        model=GEMINI_MODEL,
+            model=GEMINI_MODEL,
 
-        contents=[
-            prompt,
-            image_part,
-        ],
+            contents=[
+                prompt,
+                image_part,
+            ],
 
-        config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(
-                thinking_level="low",
-            )
-        ),
+            config=types.GenerateContentConfig(
+
+                thinking_config=types.ThinkingConfig(
+                    thinking_level="low",
+                )
+
+            ),
+        )
     )
 
     analysis = (
-        response.text or ""
+        response.text
+        or ""
     ).strip()
 
     if not analysis:
@@ -1749,7 +1796,9 @@ USER QUESTION:
             "Gemini returned an empty report analysis."
         )
 
-    return analysis[:MAX_REPORT_CONTEXT_CHARS]
+    return analysis[
+        :MAX_REPORT_CONTEXT_CHARS
+    ]
 
 
 # ============================================================
@@ -1758,8 +1807,13 @@ USER QUESTION:
 
 def get_response_settings():
 
-    length = st.session_state.resp_length
-    mode = st.session_state.app_mode
+    length = (
+        st.session_state.resp_length
+    )
+
+    mode = (
+        st.session_state.app_mode
+    )
 
     if mode == "AI Medical Analyst":
 
@@ -1850,9 +1904,11 @@ Give a balanced answer.
 
 def build_conversation_context():
 
-    recent = st.session_state.messages[
-        -MAX_HISTORY_MESSAGES:
-    ]
+    recent = (
+        st.session_state.messages[
+            -MAX_HISTORY_MESSAGES:
+        ]
+    )
 
     if not recent:
 
@@ -1862,17 +1918,24 @@ def build_conversation_context():
 
     for msg in recent:
 
-        role = msg.get(
-            "role",
-            "user",
-        ).upper()
+        role = (
+            msg.get(
+                "role",
+                "user",
+            )
+            .upper()
+        )
 
         content = (
-            msg.get("content", "")
+            msg.get(
+                "content",
+                "",
+            )
             or ""
         )
 
         if len(content) > 2500:
+
             content = content[:2500]
 
         lines.append(
@@ -1898,7 +1961,9 @@ def generate_final_answer(
         max_tokens,
     ) = get_response_settings()
 
-    conversation = build_conversation_context()
+    conversation = (
+        build_conversation_context()
+    )
 
     report_text = (
         report_context
@@ -1956,32 +2021,35 @@ SAFETY RULES:
 Return ONLY the final answer.
 """
 
-    response = groq_client.chat.completions.create(
+    response = (
+        groq_client.chat.completions.create(
 
-        model=GROQ_MODEL,
+            model=GROQ_MODEL,
 
-        messages=[
-            {
-                "role": "system",
-                "content":
-                    "You are a safe, accurate and patient-friendly "
-                    "healthcare information assistant.",
-            },
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
+            messages=[
+                {
+                    "role": "system",
+                    "content":
+                        "You are a safe, accurate and "
+                        "patient-friendly healthcare "
+                        "information assistant.",
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
 
-        reasoning_effort=reasoning,
+            reasoning_effort=reasoning,
 
-        include_reasoning=False,
+            include_reasoning=False,
 
-        temperature=0.2,
+            temperature=0.2,
 
-        max_tokens=max_tokens,
+            max_tokens=max_tokens,
 
-        stream=True,
+            stream=True,
+        )
     )
 
     return response
@@ -2132,18 +2200,27 @@ if st.session_state.report_context:
 for msg in st.session_state.messages:
 
     with st.chat_message(
-        msg.get("role", "assistant")
+        msg.get(
+            "role",
+            "assistant",
+        )
     ):
 
         content = (
-            msg.get("content", "")
+            msg.get(
+                "content",
+                "",
+            )
             or ""
         )
 
         if content:
+
             st.markdown(content)
 
-        attachment = msg.get("attachment")
+        attachment = (
+            msg.get("attachment")
+        )
 
         if attachment:
 
@@ -2154,14 +2231,14 @@ for msg in st.session_state.messages:
 
 # ============================================================
 # EPHEMERAL DATA NOTICE
-# Shown directly above the chat / file-upload box.
 # ============================================================
 
 st.markdown(
     """
     <div class="ephemeral-note">
-        🔒 <b>Ephemeral Data Processing</b> — any medical document
-        you attach is deleted automatically within 1 hour.
+        🔒 <b>Ephemeral Data Processing</b> —
+        any medical document you attach is deleted
+        automatically within 1 hour.
         Your chat history stays saved in this conversation.
     </div>
     """,
@@ -2171,10 +2248,6 @@ st.markdown(
 
 # ============================================================
 # CHAT INPUT
-#
-# Image is OPTIONAL.
-# Text is OPTIONAL.
-# At least one is required by the handler.
 # ============================================================
 
 chat_input = st.chat_input(
@@ -2237,20 +2310,12 @@ else:
 
 if user_question or files:
 
-    # --------------------------------------------------------
-    # Image-only request
-    # --------------------------------------------------------
-
     if not user_question:
 
         user_question = (
             "Please explain this medical report "
             "in simple language."
         )
-
-    # --------------------------------------------------------
-    # One image only
-    # --------------------------------------------------------
 
     if len(files) > 1:
 
@@ -2267,10 +2332,6 @@ if user_question or files:
     )
 
     try:
-
-        # ====================================================
-        # VALIDATE IMAGE FIRST
-        # ====================================================
 
         attachment_name = None
         image_bytes = None
@@ -2290,15 +2351,12 @@ if user_question or files:
             if not valid:
 
                 st.error(error)
+
                 st.stop()
 
             attachment_name = (
                 uploaded_file.name
             )
-
-        # ====================================================
-        # SAVE USER MESSAGE
-        # ====================================================
 
         st.session_state.messages.append(
             {
@@ -2307,10 +2365,6 @@ if user_question or files:
                 "attachment": attachment_name,
             }
         )
-
-        # ====================================================
-        # SHOW USER MESSAGE
-        # ====================================================
 
         with st.chat_message("user"):
 
@@ -2323,10 +2377,6 @@ if user_question or files:
                 st.caption(
                     f"📎 {attachment_name}"
                 )
-
-        # ====================================================
-        # IMAGE / REPORT PIPELINE
-        # ====================================================
 
         if uploaded_file:
 
@@ -2348,10 +2398,6 @@ if user_question or files:
 
                 status.empty()
 
-                # --------------------------------------------
-                # Save text analysis only
-                # --------------------------------------------
-
                 st.session_state.report_context = (
                     report_analysis
                 )
@@ -2359,10 +2405,6 @@ if user_question or files:
                 st.session_state.report_name = (
                     uploaded_file.name
                 )
-
-                # --------------------------------------------
-                # Generate patient response
-                # --------------------------------------------
 
                 status = st.empty()
 
@@ -2391,10 +2433,6 @@ if user_question or files:
                         "content": final_answer,
                     }
                 )
-
-        # ====================================================
-        # NORMAL TEXT CHAT
-        # ====================================================
 
         else:
 
@@ -2431,13 +2469,12 @@ if user_question or files:
 
     except Exception as e:
 
-        # ----------------------------------------------------
-        # Remove failed user message
-        # ----------------------------------------------------
-
         if (
             st.session_state.messages
-            and st.session_state.messages[-1].get("role")
+            and
+            st.session_state.messages[-1].get(
+                "role"
+            )
             == "user"
         ):
 
