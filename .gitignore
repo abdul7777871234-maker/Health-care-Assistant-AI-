@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+
+# Secrets / credentials
+.env
+.env.*
+*.key
+*.pem
+secrets/
+credentials/
+service-account*.json
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Runtime files
+*.log
+*.tmp
+*.cache
+
+# Medical/user data
+uploads/
+medical_reports/
+patient_data/
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Colab
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
