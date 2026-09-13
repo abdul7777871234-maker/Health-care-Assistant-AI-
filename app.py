@@ -1,525 +1,690 @@
-# -*- coding: utf-8 -*-
-
 import os
+import base64
 import streamlit as st
-from google import genai
-from google.genai import types
 from groq import Groq
-
-# ===========================================================
-# PAGE CONFIGURATION
-# ===========================================================
 
 st.set_page_config(
     page_title="AI Healthcare Assistant",
-    page_icon="🩺",
+    page_icon="✚",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# ===========================================================
-# SESSION STATE
-# ===========================================================
+# ---------------- STATE ----------------
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "app_mode" not in st.session_state:
-    st.session_state.app_mode = "AI Medical Analyst"
-
-if "response_style" not in st.session_state:
-    st.session_state.response_style = "Balanced"
-
-if "accent" not in st.session_state:
-    st.session_state.accent = "Rose"
-
-if "theme" not in st.session_state:
-    st.session_state.theme = "Dark"
-
-# ===========================================================
-# THEME & ACCENT CONFIGURATION MAPS
-# ===========================================================
+st.session_state.setdefault("theme", "Light")
+st.session_state.setdefault("accent", "Cyan")
+st.session_state.setdefault("messages", [])
+st.session_state.setdefault("ai_persona", "AI Medical Analyst")
+st.session_state.setdefault("response_style", "Balanced")
 
 ACCENTS = {
-    "Rose": {"primary": "#ff3d78", "soft": "#ff9dbb", "dim": "rgba(255,61,120,0.20)"},
-    "Blue": {"primary": "#3d82ff", "soft": "#9dbbff", "dim": "rgba(61,130,255,0.20)"},
-    "Emerald": {"primary": "#10b981", "soft": "#6ee7b7", "dim": "rgba(16,185,129,0.20)"},
-    "Purple": {"primary": "#a855f7", "soft": "#d8b4fe", "dim": "rgba(168,85,247,0.20)"},
-    "Amber": {"primary": "#f59e0b", "soft": "#fcd34d", "dim": "rgba(245,158,11,0.20)"}
+    "Cyan": ("#00B4D8", "rgba(0,180,216,.15)"),
+    "Blue": ("#2563EB", "rgba(37,99,235,.15)"),
+    "Violet": ("#7C3AED", "rgba(124,58,237,.15)"),
+    "Rose": ("#E11D48", "rgba(225,29,72,.15)"),
+    "Emerald": ("#059669", "rgba(5,150,105,.15)"),
+    "Amber": ("#D97706", "rgba(217,119,6,.15)"),
+    "Sunset": ("#EA580C", "rgba(234,88,12,.15)"),
+    "Neon Purple": ("#9333EA", "rgba(147,51,234,.15)"),
+    "Cyber Pink": ("#DB2777", "rgba(219,39,119,.15)"),
+    "Electric Lime": ("#16A34A", "rgba(22,163,74,.15)"),
+    "Gold": ("#CA8A04", "rgba(202,138,4,.15)"),
+    "Neon Orange": ("#C2410C", "rgba(194,65,12,.15)"),
+    "Deep Teal": ("#0F766E", "rgba(15,118,110,.15)"),
+    "Sky Blue": ("#0284C7", "rgba(2,132,199,.15)"),
 }
 
-current_accent = ACCENTS.get(st.session_state.accent, ACCENTS["Rose"])
+ACCENT, GLOW = ACCENTS[st.session_state.accent]
 
-if st.session_state.theme == "Light":
-    bg_color = "#f8fafc"
-    sidebar_color = "#f1f5f9"
-    panel_color = "#ffffff"
-    text_color = "#0f172a"
-    muted_color = "#475569"
-    border_color = "rgba(15,23,42,0.1)"
+if st.session_state.theme == "Dark":
+    BG = "#050811"
+    PANEL = "#0B1120"
+    PANEL2 = "#101827"
+    TEXT = "#F7FAFF"
+    MUTED = "#97A4B8"
+    BORDER = "rgba(255,255,255,.09)"
+    SELECT_BG = "#0B1120"
+    SELECT_TEXT = "#F7FAFF"
+    BTN_BG = "#101827"
+    BOTTOM_BG = "#050811"
+    CHAT_BG = "#0B1120"
+    CHAT_INPUT_BG = "#0B1120"
+    CHAT_INPUT_TEXT = "#F7FAFF"
+    CHAT_INPUT_PLACEHOLDER = "#97A4B8"
 else:
-    bg_color = "#080a10"
-    sidebar_color = "#0b0e17"
-    panel_color = "#11141e"
-    text_color = "#f4f5f8"
-    muted_color = "#9aa1ae"
-    border_color = "rgba(255,255,255,0.075)"
+    BG = "#FFFFFF"
+    PANEL = "#F8FAFC"
+    PANEL2 = "#F1F5F9"
+    TEXT = "#0F172A"
+    MUTED = "#64748B"
+    BORDER = "rgba(15,23,42,.12)"
+    SELECT_BG = "#FFFFFF"
+    SELECT_TEXT = "#000000"
+    BTN_BG = "#FFFFFF"
+    BOTTOM_BG = "#FFFFFF"
+    CHAT_BG = "#F1F5F9"
+    CHAT_INPUT_BG = "#FFFFFF"
+    CHAT_INPUT_TEXT = "#0F172A"
+    CHAT_INPUT_PLACEHOLDER = "#64748B"
 
-# ===========================================================
-# COMPLETE VISUAL SYSTEM
-# ===========================================================
+# ---------------- GROQ ----------------
+
+key = os.getenv("GROQ_API_KEY", "").strip()
+groq = Groq(api_key=key) if key else None
+
+# ---------------- PERSONAS & STYLES ----------------
+
+PERSONAS = {
+    "AI Medical Analyst": "You are an expert AI Medical Analyst. Help users understand medical reports, lab values, and clinical terms in simple, clear language. Do not diagnose or prescribe.",
+    "Symptom Checker": "You are a supportive Symptom Checker assistant. Help users evaluate symptoms by asking clarifying questions, suggesting potential non-urgent explanations, and emphasizing professional medical consultation.",
+    "Nutrition Coach": "You are a professional Nutrition Coach. Provide evidence-based guidance on healthy eating, macronutrients, meal planning, and balanced daily diets.",
+    "General Health Advisor": "You are a friendly General Health Advisor focused on wellness, lifestyle improvements, sleep hygiene, and preventive health habits."
+}
+
+STYLES = {
+    "Concise": {"max_tokens": 300, "instruction": " Keep your answer brief, direct, and straight to the point."},
+    "Balanced": {"max_tokens": 600, "instruction": " Provide a well-rounded, clear, and structured response."},
+    "Detailed": {"max_tokens": 1200, "instruction": " Provide an in-depth, comprehensive breakdown with structured sections, explanations, and context."}
+}
+
+# ---------------- CSS ----------------
 
 st.markdown(
-f"""
-<style>
+    f"""
+    <style>
+    :root {{
+        --accent:{ACCENT};
+        --glow:{GLOW};
+        --bg:{BG};
+        --panel:{PANEL};
+        --panel2:{PANEL2};
+        --text:{TEXT};
+        --muted:{MUTED};
+        --border:{BORDER};
+        --select-bg:{SELECT_BG};
+        --select-text:{SELECT_TEXT};
+        --btn-bg:{BTN_BG};
+        --bottom-bg:{BOTTOM_BG};
+        --chat-bg:{CHAT_BG};
+        --chat-input-bg:{CHAT_INPUT_BG};
+        --chat-input-text:{CHAT_INPUT_TEXT};
+        --chat-input-placeholder:{CHAT_INPUT_PLACEHOLDER};
+    }}
 
-:root {{
-    --bg: {bg_color};
-    --sidebar: {sidebar_color};
-    --panel: {panel_color};
-    --border: {border_color};
-    --accent: {current_accent["primary"]};
-    --accent-soft: {current_accent["soft"]};
-    --accent-dim: {current_accent["dim"]};
-    --text: {text_color};
-    --muted: {muted_color};
-}}
+    html,body,[data-testid="stAppViewContainer"],[data-testid="stMain"] {{
+        background:var(--bg)!important;
+    }}
 
-html, body, [data-testid="stAppViewContainer"] {{
-    background: var(--bg) !important;
-}}
+    .stApp {{
+        background: var(--bg)!important;
+        color: var(--text)!important;
+    }}
 
-.stApp {{
-    background: var(--bg) !important;
-    color: var(--text);
-}}
+    [data-testid="stChatMessage"] {{
+        background-color: var(--chat-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }}
 
-.main {{
-    background: transparent !important;
-}}
+    [data-testid="stChatMessage"] p, 
+    [data-testid="stChatMessage"] li, 
+    [data-testid="stChatMessage"] span, 
+    [data-testid="stMarkdownContainer"] p, 
+    [data-testid="stMarkdownContainer"] li {{
+        color: var(--text) !important;
+        font-weight: 500;
+    }}
 
-.block-container {{
-    max-width: 1180px !important;
-    padding-top: 28px !important;
-    padding-bottom: 110px !important;
-}}
+    header[data-testid="stHeader"] {{
+        background: transparent !important;
+    }}
 
-section[data-testid="stSidebar"] {{
-    width: 270px !important;
-    min-width: 270px !important;
-    max-width: 270px !important;
-    background: var(--sidebar) !important;
-    border-right: 1px solid var(--border) !important;
-}}
+    #MainMenu, footer {{
+        display: none !important;
+    }}
 
-section[data-testid="stSidebar"] > div {{
-    padding: 0 18px 18px 18px !important;
-}}
+    section[data-testid="stSidebar"] {{
+        background: var(--panel) !important;
+        border-right: 1px solid var(--border) !important;
+    }}
 
-section[data-testid="stSidebar"] * {{
-    color: var(--text) !important;
-}}
+    /* ---- SELECTBOX FIX (bulletproof): scoped to Streamlit's
+       stable stSelectbox testid instead of data-baseweb, which
+       can change between Streamlit versions. Forces color on
+       every div/span/p inside so nothing can stay default-white. ---- */
+    [data-testid="stSelectbox"] {{
+        background-color: transparent !important;
+    }}
 
-.sidebar-menu {{
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-top: -3px;
-    margin-bottom: 16px;
-}}
+    [data-testid="stSelectbox"] div,
+    [data-testid="stSelectbox"] span,
+    [data-testid="stSelectbox"] p,
+    [data-testid="stSelectbox"] * {{
+        background-color: var(--select-bg) !important;
+        color: var(--select-text) !important;
+        border-color: var(--border) !important;
+        opacity: 1 !important;
+    }}
 
-.menu-box {{
-    width: 39px;
-    height: 39px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: var(--panel);
-}}
+    [data-testid="stSelectbox"] svg {{
+        fill: var(--select-text) !important;
+    }}
 
-.menu-label {{
-    font-size: 6px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--muted);
-    margin-bottom: 2px;
-}}
+    div[data-baseweb="popover"],
+    div[data-baseweb="menu"],
+    ul[data-baseweb="menu"] {{
+        background-color: var(--select-bg) !important;
+        border: 1px solid var(--border) !important;
+    }}
 
-.menu-close {{
-    font-size: 22px;
-    line-height: 16px;
-    color: var(--text);
-}}
+    div[data-baseweb="menu"] *,
+    ul[data-baseweb="menu"] *,
+    [role="option"] {{
+        background-color: var(--select-bg) !important;
+        color: var(--select-text) !important;
+    }}
 
-.brand-wrap {{
-    text-align: center;
-    padding: 0 0 19px 0;
-}}
+    [role="option"]:hover,
+    [role="option"][aria-selected="true"] {{
+        background-color: var(--glow) !important;
+        color: var(--accent) !important;
+    }}
 
-.brand-icon {{
-    width: 51px;
-    height: 51px;
-    margin: 0 auto 11px auto;
-    border: 1px solid var(--accent);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--accent-dim);
-}}
+    div.stButton > button {{
+        background-color: var(--btn-bg) !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+    }}
 
-.brand-title {{
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 5px;
-}}
+    [data-testid="stChatInput"],
+    [data-testid="stChatInput"] > div,
+    [data-testid="stChatInput"] div {{
+        background-color: var(--chat-input-bg) !important;
+        border-color: var(--border) !important;
+    }}
 
-.brand-caption {{
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--muted);
-}}
+    [data-testid="stChatInput"] {{
+        border: 1px solid var(--border) !important;
+        border-radius: 24px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,.06) !important;
+    }}
 
-.sidebar-heading {{
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0 0 13px 0;
-    color: var(--text);
-}}
+    [data-testid="stChatInput"] textarea,
+    [data-testid="stChatInput"] input {{
+        background: transparent !important;
+        color: var(--chat-input-text) !important;
+        -webkit-text-fill-color: var(--chat-input-text) !important;
+    }}
 
-.sidebar-empty {{
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 18px;
-}}
+    [data-testid="stChatInput"] textarea::placeholder {{
+        color: var(--chat-input-placeholder) !important;
+        opacity: 1 !important;
+    }}
 
-.sidebar-divider {{
-    height: 1px;
-    width: 100%;
-    background: var(--border);
-    margin: 0 0 20px 0;
-}}
+    [data-testid="stChatInput"] button {{
+        color: var(--chat-input-text) !important;
+    }}
 
-section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
-    background: var(--panel) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 6px !important;
-}}
+    [data-testid="stChatInput"] svg {{
+        fill: var(--chat-input-text) !important;
+    }}
 
-section[data-testid="stSidebar"] .stButton > button {{
-    min-height: 36px !important;
-    background: var(--panel) !important;
-    color: var(--text) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 7px !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-}}
+    [data-testid="stBottomBlockContainer"], [data-testid="stBottom"] {{
+        background: var(--bottom-bg) !important;
+    }}
 
-.hero-container {{
-    width: 830px;
-    max-width: calc(100vw - 350px);
-    margin: 0 auto 21px auto;
-    padding: 22px 30px 28px 30px;
-    background: var(--panel);
-    border: 1px solid var(--accent);
-    border-radius: 23px;
-    text-align: center;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-}}
+    @keyframes breathe {{
+        0%, 100% {{
+            transform: scale(1);
+            box-shadow: 0 0 15px var(--glow), inset 0 0 8px var(--glow);
+        }}
+        50% {{
+            transform: scale(1.05);
+            box-shadow: 0 0 25px var(--accent), inset 0 0 12px var(--accent);
+        }}
+    }}
 
-.hero-icon {{
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 11px auto;
-    border-radius: 17px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--accent);
-    background: var(--accent-dim);
-}}
+    .breathing-icon {{
+        animation: breathe 3.5s ease-in-out infinite;
+    }}
 
-.hero-title {{
-    color: var(--text);
-    font-weight: 800;
-    font-size: 31px;
-    line-height: 1.2;
-    margin: 0;
-    letter-spacing: -0.8px;
-}}
+    .brand-box {{
+        padding: 12px 5px 18px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }}
 
-.hero-description {{
-    color: var(--muted);
-    margin: 10px 0 14px 0;
-    font-size: 13px;
-    line-height: 1.5;
-}}
+    .brand-icon {{
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px auto;
+        border-radius: 16px;
+        background: radial-gradient(circle, var(--glow), transparent 72%);
+        border: 1.5px solid var(--accent);
+    }}
 
-.hero-badge {{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 7px 14px;
-    color: var(--accent);
-    font-size: 10px;
-    font-weight: 700;
-    border: 1px solid var(--accent);
-    border-radius: 999px;
-    background: var(--accent-dim);
-}}
+    .brand-icon svg {{
+        width: 28px;
+        height: 28px;
+        filter: drop-shadow(0 0 4px var(--glow));
+    }}
 
-.quick-label {{
-    text-align: center;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 500;
-    margin: 5px 0 9px 0;
-}}
+    .brand-title {{
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: .9px;
+    }}
 
-div[data-testid="column"] .stButton > button {{
-    min-height: 37px !important;
-    background: var(--panel) !important;
-    color: var(--text) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 11px !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-}}
+    .brand-caption {{
+        color: var(--muted);
+        font-size: 11px;
+        margin-top: 3px;
+        line-height: 1.4;
+    }}
 
-.notice-box {{
-    width: 830px;
-    max-width: calc(100vw - 350px);
-    margin: 17px auto 9px auto;
-    padding: 9px 15px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--muted);
-    font-size: 10px;
-    text-align: left;
-}}
+    .sidebar-label {{
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 12px 0 4px;
+    }}
 
-.disclaimer-box {{
-    width: 830px;
-    max-width: calc(100vw - 350px);
-    margin: 0 auto 20px auto;
-    padding: 9px 15px;
-    background: rgba(245,158,11,0.05);
-    border: 1px solid rgba(245,158,11,0.3);
-    border-radius: 8px;
-    color: #d97706;
-    font-size: 10px;
-    text-align: left;
-}}
+    .hero {{
+        position: relative;
+        max-width: 800px;
+        margin: 12px auto 0;
+        padding: 38px 24px 34px;
+        text-align: center;
+        overflow: hidden;
+        border-radius: 26px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        box-shadow: 0 20px 50px rgba(0,0,0,.04);
+    }}
 
-[data-testid="stFileUploaderDropzone"] {{
-    background: var(--panel) !important;
-    border: 1px dashed var(--border) !important;
-    border-radius: 10px !important;
-}}
+    .hero::before {{
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 12%;
+        right: 12%;
+        height: 2px;
+        background: linear-gradient(90deg,transparent,var(--accent),transparent);
+        box-shadow: 0 0 18px var(--glow);
+    }}
 
-[data-testid="stChatInput"] > div {{
-    background: var(--panel) !important;
-    border: 1px solid var(--accent) !important;
-    border-radius: 16px !important;
-}}
+    .hero-glow {{
+        position: absolute;
+        width: 280px;
+        height: 160px;
+        top: -105px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--glow);
+        filter: blur(65px);
+    }}
 
-#MainMenu, footer, header[data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {{
-    visibility: hidden !important;
-    display: none !important;
-}}
+    .hero-icon {{
+        position: relative;
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        background: radial-gradient(circle,var(--glow),transparent 72%);
+        border: 1.5px solid var(--accent);
+    }}
 
-</style>
-"""
-,
-    unsafe_allow_html=True
+    .hero-icon svg {{
+        width: 36px;
+        height: 36px;
+        filter: drop-shadow(0 0 6px var(--glow));
+    }}
+
+    .hero-title {{
+        position: relative;
+        color: var(--text);
+        font-size: 48px;
+        font-weight: 850;
+        line-height: .98;
+        letter-spacing: -2px;
+    }}
+
+    .hero-title-accent {{
+        color: var(--accent);
+    }}
+
+    .hero-description {{
+        position: relative;
+        max-width: 600px;
+        margin: 16px auto 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.6;
+    }}
+
+    .hero-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 17px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        color: var(--accent);
+        background: var(--glow);
+        border: 1px solid var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+    }}
+
+    .hero-dot {{
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
+    }}
+
+    .suggestions-title {{
+        max-width: 800px;
+        margin: 23px auto 10px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }}
+
+    .suggestions div.stButton > button {{
+        height: 56px!important;
+        min-height: 56px!important;
+        padding: 8px 12px!important;
+        border-radius: 13px!important;
+        background-color: var(--btn-bg)!important;
+        background-image: none !important;
+        border: 1px solid var(--border)!important;
+        color: var(--text)!important;
+        font-size: 11px!important;
+        font-weight: 700!important;
+        box-shadow: 0 4px 14px rgba(0,0,0,.03)!important;
+    }}
+
+    .suggestions div.stButton > button:hover {{
+        color: var(--accent)!important;
+        border-color: var(--accent)!important;
+        box-shadow: 0 0 18px var(--glow)!important;
+        transform: translateY(-1px);
+    }}
+
+    .notice {{
+        max-width: 800px;
+        margin: 16px auto 7px;
+        padding: 9px 13px;
+        text-align: center;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--muted);
+        background: var(--panel);
+        font-size: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.01);
+    }}
+
+    .disclaimer {{
+        max-width: 800px;
+        margin: auto;
+        padding: 10px 13px;
+        text-align: center;
+        border: 1px solid rgba(217,119,6,.20);
+        border-radius: 10px;
+        color: #B45309;
+        background: rgba(217,119,6,.03);
+        font-size: 10px;
+    }}
+
+    @media(max-width: 700px) {{
+        .hero {{ padding: 28px 16px 25px; }}
+        .hero-title {{ font-size: 38px; }}
+        .hero-description {{ font-size: 14px; }}
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
-# ===========================================================
-# API CLIENTS
-# ===========================================================
-
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-
-if not GEMINI_API_KEY or not GROQ_API_KEY:
-    st.error("❌ API keys missing. Please configure GEMINI_API_KEY and GROQ_API_KEY.")
-    st.stop()
-
-@st.cache_resource(show_spinner=False)
-def init_ai_clients():
-    g_client = genai.Client(api_key=GEMINI_API_KEY)
-    groq_client = Groq(api_key=GROQ_API_KEY)
-    return g_client, groq_client
-
-gemini_client, groq_client = init_ai_clients()
-GROQ_MODEL = "openai/gpt-oss-120b"
-
-# ===========================================================
-# SIDEBAR
-# ===========================================================
+EKG_LOGO_SVG = '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 32H18L24 18L32 46L40 22L46 32H60" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 with st.sidebar:
     st.markdown(
-        """
-        <div class="sidebar-menu">
-            <div class="menu-box">
-                <div class="menu-label">MENU</div>
-                <div class="menu-close">«</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
         f"""
-        <div class="brand-wrap">
-            <div class="brand-icon">
-                <svg width="30" height="30" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 25V14C16 9.6 19.6 6 24 6C28.4 6 32 9.6 32 14V29C32 35.1 36.9 40 43 40" stroke="{current_accent["soft"]}" stroke-width="2.8" stroke-linecap="round"/>
-                    <path d="M16 20C12.1 20 9 23.1 9 27C9 30.9 12.1 34 16 34" stroke="{current_accent["primary"]}" stroke-width="2.8" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <div class="brand-title">AI HEALTHCARE</div>
-            <div class="brand-caption">Smart health information assistant</div>
-        </div>
+<div class="brand-box">
+    <div class="brand-icon breathing-icon">
+        {EKG_LOGO_SVG}
+    </div>
+    <div class="brand-title">AI HEALTHCARE</div>
+    <div class="brand-caption">Smart health information assistant</div>
+</div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-heading">💬 Chat History</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-label">AI Persona / Model</div>', unsafe_allow_html=True)
+    selected_persona = st.selectbox(
+        "Persona",
+        list(PERSONAS.keys()),
+        index=list(PERSONAS.keys()).index(st.session_state.ai_persona),
+        label_visibility="collapsed",
+    )
+    if selected_persona != st.session_state.ai_persona:
+        st.session_state.ai_persona = selected_persona
+        st.rerun()
 
-    if not st.session_state.messages:
-        st.markdown('<div class="sidebar-empty">No previous messages yet.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-label">Response Style</div>', unsafe_allow_html=True)
+    selected_style = st.selectbox(
+        "Style",
+        list(STYLES.keys()),
+        index=list(STYLES.keys()).index(st.session_state.response_style),
+        label_visibility="collapsed",
+    )
+    if selected_style != st.session_state.response_style:
+        st.session_state.response_style = selected_style
+        st.rerun()
 
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-label">Accent Color</div>', unsafe_allow_html=True)
+    new_accent = st.selectbox(
+        "Accent",
+        list(ACCENTS.keys()),
+        index=list(ACCENTS.keys()).index(st.session_state.accent),
+        label_visibility="collapsed",
+    )
+    if new_accent != st.session_state.accent:
+        st.session_state.accent = new_accent
+        st.rerun()
 
-    st.session_state.app_mode = st.selectbox("Assistant Mode", ["AI Medical Analyst", "Symptom Checker", "Nutrition Coach"])
-    st.session_state.response_style = st.selectbox("Response Style", ["Balanced", "Concise", "Detailed"])
-    st.session_state.accent = st.selectbox("Accent", ["Rose", "Blue", "Emerald", "Purple", "Amber"])
-
-    st.markdown('<div class="appearance-title">🎨 Appearance</div>', unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
+    st.markdown('<div class="sidebar-label">Appearance</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
         if st.button("☀️ Light", use_container_width=True):
             st.session_state.theme = "Light"
             st.rerun()
-    with col2:
+    with c2:
         if st.button("🌙 Dark", use_container_width=True):
             st.session_state.theme = "Dark"
             st.rerun()
 
-    st.markdown(f'<div class="appearance-status">Active theme: {st.session_state.theme}</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="font-size:10px;color:var(--muted);margin-top:4px">Theme: <b style="color:var(--accent)">{st.session_state.theme}</b></div>',
+        unsafe_allow_html=True,
+    )
 
-    if st.button("🗑️ Clear Conversation", use_container_width=True):
+    st.markdown("<hr style='margin:15px 0 10px; border-color:var(--border);'>", unsafe_allow_html=True)
+    st.markdown(f'<div style="font-size:10px;color:var(--muted);margin-bottom:8px">💬 Messages in session: <b>{len(st.session_state.messages)}</b></div>', unsafe_allow_html=True)
+    
+    if st.button("Clear Chat History", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
 
-# ===========================================================
-# HERO SECTION
-# ===========================================================
-
-st.markdown(
-    f"""
-    <div class="hero-container">
-        <div class="hero-icon">
-            <svg width="33" height="33" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 25V14C16 9.6 19.6 6 24 6C28.4 6 32 9.6 32 14V29C32 35.1 36.9 40 43 40" stroke="{current_accent["soft"]}" stroke-width="2.8" stroke-linecap="round"/>
-                <path d="M16 20C12.1 20 9 23.1 9 27C9 30.9 12.1 34 16 34" stroke="{current_accent["primary"]}" stroke-width="2.8" stroke-linecap="round"/>
-            </svg>
-        </div>
-        <div class="hero-title">AI Healthcare Assistant</div>
-        <div class="hero-description">Understand medical reports and health information in simple language.</div>
-        <div class="hero-badge">{st.session_state.app_mode}</div>
+if not st.session_state.messages:
+    st.markdown(
+        f"""
+<div class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-icon breathing-icon">
+        {EKG_LOGO_SVG}
     </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# ===========================================================
-# QUICK QUESTIONS
-# ===========================================================
-
-st.markdown('<div class="quick-label">Try a quick question</div>', unsafe_allow_html=True)
-q1, q2 = st.columns(2, gap="small")
-
-with q1:
-    if st.button("📄 Blood test basics", use_container_width=True):
-        st.session_state.messages.append({"role": "user", "content": "Can you explain the basics of a standard blood test?"})
-        st.rerun()
-    if st.button("🔍 Causes of fatigue", use_container_width=True):
-        st.session_state.messages.append({"role": "user", "content": "What are the common causes of chronic fatigue?"})
-        st.rerun()
-
-with q2:
-    if st.button("🥗 Healthy diet", use_container_width=True):
-        st.session_state.messages.append({"role": "user", "content": "Give me tips for maintaining a healthy balanced diet."})
-        st.rerun()
-    if st.button("💊 Medication side effects", use_container_width=True):
-        st.session_state.messages.append({"role": "user", "content": "How can I check or manage common medication side effects?"})
-        st.rerun()
-
-# ===========================================================
-# INFO & UPLOADER
-# ===========================================================
-
-st.markdown(
-    """
-    <div class="notice-box">
-        🔒 <b>Ephemeral Data Processing</b> — any medical document you attach is deleted automatically within 1 hour.
+    <div class="hero-title">
+        AI Healthcare<br>
+        <span class="hero-title-accent">Assistant</span>
     </div>
-    """,
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    """
-    <div class="disclaimer-box">
-        ⚠️ <b>Important:</b> General informational support only. Does not replace professional medical advice.
+    <div class="hero-description">
+        Understand medical reports, check symptoms, and get wellness guidance in simple terms.
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    <div class="hero-badge">
+        <span class="hero-dot"></span>
+        {st.session_state.ai_persona} ({st.session_state.response_style})
+    </div>
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-uploaded_file = st.file_uploader("Upload Medical Report", type=["jpg", "jpeg", "png", "webp"], label_visibility="collapsed")
+    st.markdown('<div class="suggestions-title">Suggested questions</div>', unsafe_allow_html=True)
 
-# ===========================================================
-# CHAT LOGIC
-# ===========================================================
+    suggestions = [
+        "🩸 Blood test basics",
+        "🥗 Heart-healthy diet",
+        "⚡ Causes of fatigue",
+        "💊 Medication side effects",
+    ]
 
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    prompts = [
+        "Can you explain the basic components of a CBC test?",
+        "What are the core components of a heart-healthy daily diet?",
+        "What are common causes of chronic fatigue?",
+        "How can I safely check medication side effects?",
+    ]
 
-user_input = st.chat_input("Ask anything about health or attach a medical report...")
+    st.markdown('<div class="suggestions">', unsafe_allow_html=True)
+    a, b = st.columns(2, gap="small")
 
-if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
+    for i, label in enumerate(suggestions):
+        col = a if i % 2 == 0 else b
+        with col:
+            if st.button(label, use_container_width=True, key=f"question_{i}"):
+                st.session_state.messages.append({"role": "user", "content": prompts[i]})
+                answer = "Please configure GROQ_API_KEY to enable AI responses."
 
-    try:
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                completion = groq_client.chat.completions.create(
-                    model=GROQ_MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are a helpful healthcare assistant. Provide safe, structured guidance."},
-                        {"role": "user", "content": user_input}
-                    ],
-                    temperature=0.2
-                )
-                answer = completion.choices[0].message.content
-                st.markdown(answer)
+                if groq:
+                    try:
+                        system_content = PERSONAS[st.session_state.ai_persona] + STYLES[st.session_state.response_style]["instruction"]
+                        max_tok = STYLES[st.session_state.response_style]["max_tokens"]
+
+                        r = groq.chat.completions.create(
+                            model="llama-3.3-70b-versatile",
+                            messages=[
+                                {"role": "system", "content": system_content},
+                                {"role": "user", "content": prompts[i]},
+                            ],
+                            temperature=0.2,
+                            max_tokens=max_tok,
+                        )
+                        answer = r.choices[0].message.content
+                    except Exception as e:
+                        answer = f"Unable to respond: {e}"
+
                 st.session_state.messages.append({"role": "assistant", "content": answer})
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+                st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('<div class="notice">🔒 Your health information is processed to provide the requested assistance.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="disclaimer">⚠ Clinical Disclaimer: This assistant provides general informational support only and does not replace professional medical advice.</div>', unsafe_allow_html=True)
+
+else:
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            if "file_name" in msg and msg["file_name"]:
+                st.info(f"📎 Attached file for analysis: **{msg['file_name']}**")
+            st.markdown(msg["content"])
+
+user_submission = st.chat_input(
+    "Ask Gemini or attach a report...",
+    accept_file=True,
+    file_type=["png", "jpg", "jpeg", "pdf", "txt"]
+)
+
+if user_submission:
+    user_text = user_submission.text if hasattr(user_submission, "text") else str(user_submission)
+    uploaded_files = user_submission.files if hasattr(user_submission, "files") else []
+    
+    file_name = uploaded_files[0].name if uploaded_files else None
+    prompt_content = user_text if user_text else "Please analyze this attached medical report/image."
+    
+    st.session_state.messages.append({"role": "user", "content": prompt_content, "file_name": file_name})
+
+    with st.chat_message("user"):
+        if file_name:
+            st.info(f"📎 Attached file for analysis: **{file_name}**")
+        st.markdown(prompt_content)
+
+    answer = "Please configure GROQ_API_KEY to enable AI responses."
+
+    if groq:
+        try:
+            system_content = PERSONAS[st.session_state.ai_persona] + STYLES[st.session_state.response_style]["instruction"]
+            max_tok = STYLES[st.session_state.response_style]["max_tokens"]
+            
+            user_content_payload = []
+            
+            if uploaded_files:
+                uploaded_file = uploaded_files[0]
+                file_bytes = uploaded_file.getvalue()
+                if uploaded_file.type in ["image/png", "image/jpeg", "image/jpg"]:
+                    encoded_image = base64.b64encode(file_bytes).decode("utf-8")
+                    user_content_payload.append({
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{uploaded_file.type};base64,{encoded_image}"
+                        }
+                    })
+                else:
+                    try:
+                        file_text = file_bytes.decode("utf-8", errors="ignore")
+                        prompt_content += f"\n--- Attached File Content ---\n{file_text}"
+                    except Exception:
+                        pass
+
+            user_content_payload.append({
+                "type": "text",
+                "text": prompt_content
+            })
+
+            r = groq.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": user_content_payload},
+                ],
+                temperature=0.2,
+                max_tokens=max_tok,
+            )
+            answer = r.choices[0].message.content
+        except Exception as e:
+            answer = f"Unable to respond: **{e}**"
+
+    st.session_state.messages.append({"role": "assistant", "content": answer})
+    st.rerun()
