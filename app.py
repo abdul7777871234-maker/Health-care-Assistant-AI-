@@ -129,13 +129,19 @@ st.markdown(
         margin-bottom: 1rem !important;
     }}
 
-    [data-testid="stChatMessage"] p,
-    [data-testid="stChatMessage"] li,
-    [data-testid="stChatMessage"] span,
-    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stChatMessage"] p, 
+    [data-testid="stChatMessage"] li, 
+    [data-testid="stChatMessage"] span, 
+    [data-testid="stMarkdownContainer"] p, 
     [data-testid="stMarkdownContainer"] li {{
         color: var(--text) !important;
         font-weight: 500;
+    }}
+
+    [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"],
+    [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] * {{
+        color: var(--text) !important;
+        opacity: 1 !important;
     }}
 
     header[data-testid="stHeader"] {{
@@ -534,7 +540,7 @@ with st.sidebar:
 
     st.markdown("<hr style='margin:15px 0 10px; border-color:var(--border);'>", unsafe_allow_html=True)
     st.markdown(f'<div style="font-size:10px;color:var(--muted);margin-bottom:8px">💬 Messages in session: <b>{len(st.session_state.messages)}</b></div>', unsafe_allow_html=True)
-
+    
     if st.button("Clear Chat History", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
@@ -630,10 +636,10 @@ user_submission = st.chat_input(
 if user_submission:
     user_text = user_submission.text if hasattr(user_submission, "text") else str(user_submission)
     uploaded_files = user_submission.files if hasattr(user_submission, "files") else []
-
+    
     file_name = uploaded_files[0].name if uploaded_files else None
     prompt_content = user_text if user_text else "Please analyze this attached medical report/image."
-
+    
     st.session_state.messages.append({"role": "user", "content": prompt_content, "file_name": file_name})
 
     with st.chat_message("user"):
@@ -647,9 +653,9 @@ if user_submission:
         try:
             system_content = PERSONAS[st.session_state.ai_persona] + STYLES[st.session_state.response_style]["instruction"]
             max_tok = STYLES[st.session_state.response_style]["max_tokens"]
-
+            
             user_content_payload = []
-
+            
             if uploaded_files:
                 uploaded_file = uploaded_files[0]
                 file_bytes = uploaded_file.getvalue()
