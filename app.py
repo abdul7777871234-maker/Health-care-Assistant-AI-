@@ -674,7 +674,7 @@ if user_submission:
             })
 
             r = groq.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": system_content},
                     {"role": "user", "content": user_content_payload},
