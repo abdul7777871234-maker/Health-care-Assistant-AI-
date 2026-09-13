@@ -2,6 +2,8 @@ import os
 import base64
 import streamlit as st
 from groq import Groq
+from pypdf import PdfReader
+from io import BytesIO
 
 st.set_page_config(
     page_title="AI Healthcare Assistant",
@@ -70,8 +72,46 @@ else:
 
 # ---------------- GROQ ----------------
 
+GROQ_MODEL = "openai/gpt-oss-120b"
+
 key = os.getenv("GROQ_API_KEY", "").strip()
 groq = Groq(api_key=key) if key else None
+
+# ---------------- DOCUMENT TEXT EXTRACTION ----------------
+# openai/gpt-oss-120b is a text-only model (no image/vision input),
+# so PDFs and text files are converted to real extracted text here
+# before being sent as part of the prompt.
+
+MAX_DOC_CHARS = 12000
+
+def extract_document_text(file_bytes, mime_type, file_name):
+    lower_name = (file_name or "").lower()
+
+    if mime_type == "application/pdf" or lower_name.endswith(".pdf"):
+        try:
+            reader = PdfReader(BytesIO(file_bytes))
+            pages_text = []
+            for page in reader.pages:
+                page_text = page.extract_text() or ""
+                if page_text.strip():
+                    pages_text.append(page_text.strip())
+            full_text = "\n\n".join(pages_text).strip()
+            if not full_text:
+                return None, "This PDF appears to be a scanned image with no extractable text (no OCR available with the current model)."
+            return full_text[:MAX_DOC_CHARS], None
+        except Exception as e:
+            return None, f"Could not read this PDF: {e}"
+
+    if mime_type in ["image/png", "image/jpeg", "image/jpg"] or lower_name.endswith((".png", ".jpg", ".jpeg")):
+        return None, "Image attachments can't be visually analyzed with the current text-only model (openai/gpt-oss-120b). Please attach a PDF or TXT document instead."
+
+    try:
+        text = file_bytes.decode("utf-8", errors="ignore").strip()
+        if not text:
+            return None, "This file appears to be empty or unreadable as text."
+        return text[:MAX_DOC_CHARS], None
+    except Exception as e:
+        return None, f"Could not read this file: {e}"
 
 # ---------------- PERSONAS & STYLES ----------------
 
@@ -601,7 +641,7 @@ if not st.session_state.messages:
                         max_tok = STYLES[st.session_state.response_style]["max_tokens"]
 
                         r = groq.chat.completions.create(
-                            model="openai/gpt-oss-120b",
+                            model=GROQ_MODEL,
                             messages=[
                                 {"role": "system", "content": system_content},
                                 {"role": "user", "content": prompts[i]},
@@ -653,37 +693,24 @@ if user_submission:
         try:
             system_content = PERSONAS[st.session_state.ai_persona] + STYLES[st.session_state.response_style]["instruction"]
             max_tok = STYLES[st.session_state.response_style]["max_tokens"]
-            
-            user_content_payload = []
-            
+
+            final_prompt = prompt_content
+
             if uploaded_files:
                 uploaded_file = uploaded_files[0]
                 file_bytes = uploaded_file.getvalue()
-                if uploaded_file.type in ["image/png", "image/jpeg", "image/jpg"]:
-                    encoded_image = base64.b64encode(file_bytes).decode("utf-8")
-                    user_content_payload.append({
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{uploaded_file.type};base64,{encoded_image}"
-                        }
-                    })
-                else:
-                    try:
-                        file_text = file_bytes.decode("utf-8", errors="ignore")
-                        prompt_content += f"\n--- Attached File Content ---\n{file_text}"
-                    except Exception:
-                        pass
+                extracted_text, doc_note = extract_document_text(file_bytes, uploaded_file.type, uploaded_file.name)
 
-            user_content_payload.append({
-                "type": "text",
-                "text": prompt_content
-            })
+                if extracted_text:
+                    final_prompt += f"\n\n--- Attached Document Content ({uploaded_file.name}) ---\n{extracted_text}"
+                elif doc_note:
+                    final_prompt += f"\n\n--- Attachment Note ---\n{doc_note}"
 
             r = groq.chat.completions.create(
-                model="openai/gpt-oss-120b",
+                model=GROQ_MODEL,
                 messages=[
                     {"role": "system", "content": system_content},
-                    {"role": "user", "content": user_content_payload},
+                    {"role": "user", "content": final_prompt},
                 ],
                 temperature=0.2,
                 max_tokens=max_tok,
